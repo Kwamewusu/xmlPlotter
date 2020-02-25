@@ -1,16 +1,14 @@
 # Modules for text interpretation and math #
 from re import search
-import numpy as np
+from numpy import zeros
 
 # Module for reading XML files #
 from xml.etree.ElementTree import parse
 
-# Load XML files
+# Load XML files #
 
-#LARGE_FONT = ("Veranda", 12)
+# Function for picking XML file order
 
-
-# Function for picking XML file order #
 
 def xml_itemize(convention, text):
     # Regular expression for naming convention of shots
@@ -58,7 +56,7 @@ def xml_sort(order, file_list):
 def xml_root(xml_sets, shot_count):
     """ Input:
             - xml_sets: list of XML global addresses.
-            - shot_count: file count repesenting the shots acquired.
+            - shot_count: file count representing the shots acquired.
         Output:
             - root: sequencer information for each shot. 
     """
@@ -130,7 +128,7 @@ def extract_wfm(wave_objects, seq, shot_count):
         two_dim.clear()
         t += 1
 
-    wave_to_plot = np.zeros((shot_count, 2, shot_len - 1))
+    wave_to_plot = zeros((shot_count, 2, shot_len - 1))
 
     # Use split utility to place time (abscissa) and amplitude
     # (range) values into separate rows for each time point.
