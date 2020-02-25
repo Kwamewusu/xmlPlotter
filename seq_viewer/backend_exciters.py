@@ -9,7 +9,7 @@ from backend_parser import extract_wfm
 
 def ssp_end_time(wave_objects, shot_count):
     """ Input:
-            - wave_objs: list of sequencer ElementTree objects for each time point.
+            - wave_objects: list of sequencer ElementTree objects for each time point.
             - shot_count: XML file count.
         Output:
             - last_time: list of first time points > the stop time for each time point.
