@@ -2,8 +2,53 @@
 from tkinter import Frame
 from tkinter.ttk import Button
 
+# Modules for extracting waveforms
+from backend_exciters import ssp_end_time, extract_wfm, scale_time, \
+    wave_truncate
+
 # Module for animation
+import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+
+
+def wave_to_plot(wave, t):
+    x = wave[t, 0, :]
+    y = wave[t, 1, :]
+
+    return x, y
+
+
+def board_waveform(waveforms, board_num, shot):
+    ssp_endings = ssp_end_time(waveforms, shot)
+    wave_store = extract_wfm(waveforms, board_num, shot)
+
+    wave, idx_to_cut = scale_time(wave_store, ssp_endings, shot)
+
+    xtr = wave_truncate(wave, idx_to_cut, shot)
+
+    x_val, y_val = wave_to_plot(xtr, shot)
+
+
+def setup_axes(app_fig):
+    fig_axes = (app_fig.add_subplot(1, 8, i+1) for i in range(8))
+
+    yield fig_axes
+
+
+def pick_board(app_fig, fig_axes, x_val, y_val, boards, board_num):
+    fig_axes.plot(x_val, y_val, 'b-')
+    fig_axes.set_xlabel('Time (us)')
+    fig_axes.set_ylabel('Amplitude (a.u)')
+    fig_axes.autoscale(enable=True, axis='x')
+    fig_axes.set_title('Sequence {0} Board'.format(boards[board_num]))
+
+    app_fig.subplots_adjust(hspace=1.5)
+    plt.rc('font', size=8)
+    plt.rc('axes', titlesize=8)
+
+
+def unpick_board(fig_axes):
+    fig_axes.set_visible(False)
 
 
 class AnimateShots(FuncAnimation, Frame):
