@@ -126,8 +126,6 @@ class StartPage(Frame):
 
         self.canvas_setup()
 
-        self.canvas.draw()
-
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
 
@@ -151,7 +149,7 @@ class StartPage(Frame):
         self.toolbar.pack()
 
         self.canvas.get_tk_widget().pack(side='top', fill='both')
-        self.canvas.tkcanvas.pack(side='top', fill='both', expand=1)
+        self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
 
         board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
 

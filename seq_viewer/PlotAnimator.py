@@ -28,6 +28,8 @@ def board_waveform(waveforms, board_num, shot):
 
     x_val, y_val = wave_to_plot(xtr, shot)
 
+    return x_val, y_val
+
 
 def setup_axes(app_fig):
     fig_axes = (app_fig.add_subplot(1, 8, i+1) for i in range(8))
@@ -35,7 +37,7 @@ def setup_axes(app_fig):
     yield fig_axes
 
 
-def pick_board(app_fig, fig_axes, x_val, y_val, boards, board_num):
+def pick_board(app_canvas, app_fig, fig_axes, x_val, y_val, boards, board_num):
     fig_axes.plot(x_val, y_val, 'b-')
     fig_axes.set_xlabel('Time (us)')
     fig_axes.set_ylabel('Amplitude (a.u)')
@@ -45,6 +47,8 @@ def pick_board(app_fig, fig_axes, x_val, y_val, boards, board_num):
     app_fig.subplots_adjust(hspace=1.5)
     plt.rc('font', size=8)
     plt.rc('axes', titlesize=8)
+
+    app_canvas.draw()
 
 
 def unpick_board(fig_axes):
