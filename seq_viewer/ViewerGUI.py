@@ -5,15 +5,12 @@ from tkinter import filedialog
 from tkinter.ttk import Button
 
 # Modules for interactive plotting in GUI
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
 # from PlotAnimator import AnimateShots
 from GUIFileRetrieve import GetXMLPath
-from backend_exciters import ssp_end_time, extract_wfm, scale_time, \
-    wave_truncate
 from backend_parser import xml_root
 
 
@@ -24,38 +21,6 @@ def get_file(window):
                                        title="Please select the XML directory")
 
     return file_loc
-
-
-def wave_to_plot(wave, t):
-    x = wave[t, 0, :]
-    y = wave[t, 1, :]
-
-    return x, y
-
-
-def plot_board(app_canvas, app_fig, waveforms, board_set, boards, board_num, count, shot):
-    length = len(board_set)
-    ssp_endings = ssp_end_time(waveforms, shot)
-    wave_store = extract_wfm(waveforms, board_num, shot)
-
-    wave, idx_to_cut = scale_time(wave_store, ssp_endings, shot)
-
-    xtr = wave_truncate(wave, idx_to_cut, shot)
-
-    x_val, y_val = wave_to_plot(xtr, shot)
-
-    subplot = app_fig.add_subplot(1, length, count + 1)
-    subplot.plot(x_val, y_val, 'b-')
-    subplot.set_xlabel('Time (us)')
-    subplot.set_ylabel('Amplitude (a.u)')
-    subplot.autoscale(enable=True, axis='x')
-    subplot.set_title('Sequence {0} Board'.format(boards[board_num]))
-
-    app_fig.subplots_adjust(hspace=1.5)
-    plt.rc('font', size=8)
-    plt.rc('axes', titlesize=8)
-
-    app_canvas.draw()
 
 
 class CheckBar(Frame):
@@ -90,32 +55,23 @@ class CheckBar(Frame):
 
     def state(self):
 
-        state = []
-        for var in self.check_vars:
-            state.append(var.get())
+        state = [var.get() for var in self.check_vars]
 
-        for i, board in enumerate(state):
-            if board == 1:
-                self.board_set.append(i)
-                continue
+        all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
+
+        yield all_states
+
+#        for i, board in enumerate(state):
+#            if board == 1:
+#                self.board_set.append(i)
+#                continue
 
     @staticmethod
     def boards_picked(boards):
         states = [board.get() for board in boards]
-        count: int = 0
-
-        for x in states:
-            if x == 1:
-                count += 1
+        count = sum(states)
 
         return count
-
-    def pick_board(self, app_fig):
-
-        board_subplot = app_fig.add_subplot(1, length, count + 1)
-
-    def unpick_board(self):
-        pass
 
 
 class StartPage(Frame):
@@ -161,8 +117,6 @@ class StartPage(Frame):
 
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
-        self.canvas.draw()
-
         # Object that contains XML paths and file counts
         self.xml = GetXMLPath()
 
@@ -171,6 +125,8 @@ class StartPage(Frame):
         self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
 
         self.canvas_setup()
+
+        self.canvas.draw()
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -197,8 +153,11 @@ class StartPage(Frame):
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas.tkcanvas.pack(side='top', fill='both', expand=1)
 
-    def all_states(self):
-        self.board_choice.state()
+        board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
+
+
+#    def all_states(self):
+#        self.board_choice.state()
 
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
