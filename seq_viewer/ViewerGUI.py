@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
-# from PlotAnimator import AnimateShots
+from PlotAnimator import setup_axes, pick_board, unpick_board, board_waveform
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -23,6 +23,17 @@ def get_file(window):
     return file_loc
 
 
+def on_off_actions(event, canvas, fig, ax, x_val, y_val, boards, board_num):
+    # state = [var.get() for var in self.check_vars]
+    # all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
+    # x_val, y_val = board_waveform(waveform, board_num, shot)
+
+    if event:
+        pick_board(canvas, fig, ax, x_val, y_val, boards, board_num)
+    else:
+        unpick_board(fig)
+
+
 class CheckBar(Frame):
 
     def __init__(self, parent=None, picks=None):
@@ -33,6 +44,11 @@ class CheckBar(Frame):
         self.board_set = []
         self.check_btn = []
         self.check_vars = []
+        self.board_ref = {}
+        self.btn_bind = []
+
+        self.board_num = IntVar()
+        self.board_num.set(0)
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -41,30 +57,32 @@ class CheckBar(Frame):
             self.check_vars.append(IntVar())
             self.check_vars[i].set(0)
             self.check_btn.append(Checkbutton(self, text=pick,
-                                              variable=self.check_vars[i],
-                                              command=lambda: self.toggle(self.check_vars[i])))
+                                              variable=self.check_vars[i]))
+
+        for button in self.check_btn:
+            if button not in self.board_ref:
+                self.board_ref[button] = 0
+            self.board_ref[button] += 1
+
+        for i, button in enumerate(self.check_btn):
+            button.config(command=lambda: self.toggle(self.check_vars[i], self.check_btn[i]))
             self.check_btn[i].pack(side="left", anchor="w", expand=True)
 
-    @staticmethod
-    def toggle(board):
+    # @staticmethod
+    def toggle(self, board, board_obj):
 
         if board.get() == 1:
             board.set(1)
         else:
             board.set(0)
 
-    def state(self):
+        self.board_num.set(self.board_ref[board_obj])
 
-        state = [var.get() for var in self.check_vars]
-
-        all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
-
-        yield all_states
-
-#        for i, board in enumerate(state):
-#            if board == 1:
-#                self.board_set.append(i)
-#                continue
+    def play_choice(self, canvas, fig, ax, x_val, y_val, boards, board_num):
+        for i, button in enumerate(self.check_btn):
+            self.btn_bind.append(button.bind("<Button-1>",
+                                             on_off_actions(button, canvas, fig, ax, x_val, y_val,
+                                                            boards, board_num)))
 
     @staticmethod
     def boards_picked(boards):
@@ -105,16 +123,15 @@ class StartPage(Frame):
 
         # Event handler for selecting desired boards
         self.board_choice = CheckBar(self.entry_frame, picks=self.seq_list)
-        self.play_choice()
+        self.show_options()
 
         # Instance variable for third row of widgets
         self.canvas_frame = Frame(self.window, relief="sunken")
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
+        # Instance variables for the figure, canvas and navigation of plots
         self.plot_fig = Figure()
-
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
-
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
         # Object that contains XML paths and file counts
@@ -124,6 +141,7 @@ class StartPage(Frame):
         self.control_frame = Frame(self.window, relief="sunken")
         self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
 
+        self.axes = setup_axes(self.plot_fig)
         self.canvas_setup()
 
     def user_choice(self):
@@ -136,7 +154,7 @@ class StartPage(Frame):
 
         self.choice_display.grid(row=0, column=1)
 
-    def play_choice(self):
+    def show_options(self):
         # Label for the check-box frame
         checkbox_label = Label(self.window, text="Boards")
         checkbox_label.grid(row=0, column=0, ipady=0, sticky="w")
@@ -151,11 +169,9 @@ class StartPage(Frame):
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
 
-        board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
-
-
-#    def all_states(self):
-#        self.board_choice.state()
+        # board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
+        y = board_waveform(self.xml.waveforms, board_num, self.xml.stop_condition)
+        self.board_choice.play_choice(self.canvas, self.plot_fig, self.axes, x, y, self.seq_list, board_num)
 
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
@@ -165,6 +181,10 @@ class StartPage(Frame):
         self.choice_show()
 
         self.choice_display.config(state="disable")
+
+    def setup_plot(self):
+        self.xml.get_xml_list(self.xml_dir.get())
+        self.get_waveforms(self.xml.xml_full_path, self.xml.stop_condition)
 
     def get_waveforms(self, xml_paths, shot_count):
         self.xml.waveforms.append(xml_root(xml_paths, shot_count))
@@ -210,9 +230,6 @@ class StartPage(Frame):
 #        self.canvas.get_tk_widget().pack(side='top', fill='both')
 #        self.canvas.tkcanvas.pack(side='top', fill='both', expand=True)
 #
-#    def setup_plot(self):
-#        self.xml.get_xml_list(self.start_page.xml_dir.get())
-#        self.get_waveforms(self.xml.xml_full_path, self.xml.stop_condition)
 #
 #    def get_waveforms(self, xml_paths, shot_count):
 #        self.xml.waveforms.append(xml_root(xml_paths, shot_count))
