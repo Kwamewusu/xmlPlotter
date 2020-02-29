@@ -18,15 +18,15 @@ def wave_to_plot(wave, t):
     return x, y
 
 
-def board_waveform(waveforms, board_num, shot):
-    ssp_endings = ssp_end_time(waveforms, shot)
-    wave_store = extract_wfm(waveforms, board_num, shot)
+def board_waveform(waveforms, board_num, shot_count):
+    ssp_endings = ssp_end_time(waveforms, shot_count)
+    wave_store = extract_wfm(waveforms, board_num, shot_count)
 
-    wave, idx_to_cut = scale_time(wave_store, ssp_endings, shot)
+    wave, idx_to_cut = scale_time(wave_store, ssp_endings, shot_count)
 
-    xtr = wave_truncate(wave, idx_to_cut, shot)
+    xtr = wave_truncate(wave, idx_to_cut, shot_count)
 
-    x_val, y_val = wave_to_plot(xtr, shot)
+    x_val, y_val = wave_to_plot(xtr, shot_count)
 
     return x_val, y_val
 
