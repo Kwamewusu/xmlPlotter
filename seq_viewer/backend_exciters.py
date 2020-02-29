@@ -65,7 +65,7 @@ def scale_time(wave, ssp_ending, shot_count):
 
     # Count and store the number of time values >= the repetition
     # time with the least number of sig. figs. This code assumes
-    # the count is consistant across time.
+    # the count is consistent across time.
     for t in range(0, shot_count):
 
         # copy waveform for each time point

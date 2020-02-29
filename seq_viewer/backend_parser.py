@@ -101,7 +101,7 @@ def extract_wfm(wave_objects, seq, shot_count):
     one_dim = [[] for x in range(shot_count)]
     two_dim = []
 
-    # Use splitlines utility to interperate whitespace
+    # Use splitlines utility to interpret whitespace
     # notation in waveform values for a particular Sequencer.
     # Fill nested list with time/amplitude data for each time point.
     t = 0
