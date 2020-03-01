@@ -23,13 +23,13 @@ def get_file(window):
     return file_loc
 
 
-def on_off_actions(event, canvas, fig, ax, x_val, y_val, boards, board_num):
+def on_off_actions(event, canvas, fig, ax, boards, board_num, waveform, shot_count):
     # state = [var.get() for var in self.check_vars]
     # all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
-    # x_val, y_val = board_waveform(waveform, board_num, shot)
+    x, y = board_waveform(waveform, board_num, shot_count)
 
     if event:
-        pick_board(canvas, fig, ax, x_val, y_val, boards, board_num)
+        pick_board(canvas, fig, ax, x, y, boards, board_num)
     else:
         unpick_board(fig)
 
@@ -41,14 +41,11 @@ class CheckBar(Frame):
 
         picks = picks or []
 
-        self.board_set = []
-        self.check_btn = []
+        self.check_btn = {}
         self.check_vars = []
-        self.board_ref = {}
         self.btn_bind = []
 
         self.board_num = IntVar()
-        self.board_num.set(0)
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -56,19 +53,14 @@ class CheckBar(Frame):
         for i, pick in enumerate(picks):
             self.check_vars.append(IntVar())
             self.check_vars[i].set(0)
-            self.check_btn.append(Checkbutton(self, text=pick,
-                                              variable=self.check_vars[i]))
-
-        for button in self.check_btn:
-            if button not in self.board_ref:
-                self.board_ref[button] = 0
-            self.board_ref[button] += 1
+            self.check_btn[i] = Checkbutton(self, text=pick, variable=self.check_vars[i])
 
         for i, button in enumerate(self.check_btn):
-            button.config(command=lambda: self.toggle(self.check_vars[i], self.check_btn[i]))
+            self.check_btn[i]["command"] = \
+                lambda board=self.check_vars[i], board_obj=button: self.toggle(board, board_obj)
+
             self.check_btn[i].pack(side="left", anchor="w", expand=True)
 
-    # @staticmethod
     def toggle(self, board, board_obj):
 
         if board.get() == 1:
@@ -76,20 +68,20 @@ class CheckBar(Frame):
         else:
             board.set(0)
 
-        self.board_num.set(self.board_ref[board_obj])
+        self.board_num.set(board_obj)
 
-    def play_choice(self, canvas, fig, ax, x_val, y_val, boards, board_num):
+    def play_choice(self, canvas, fig, ax, x_val, y_val, boards):
         for i, button in enumerate(self.check_btn):
             self.btn_bind.append(button.bind("<Button-1>",
                                              on_off_actions(button, canvas, fig, ax, x_val, y_val,
-                                                            boards, board_num)))
+                                                            boards, self.board_num.get())))
 
-    @staticmethod
-    def boards_picked(boards):
-        states = [board.get() for board in boards]
-        count = sum(states)
+    # @staticmethod
+    # def boards_picked(boards):
+    #    states = [board.get() for board in boards]
+    #    count = sum(states)
 
-        return count
+    #    return count
 
 
 class StartPage(Frame):
@@ -118,8 +110,8 @@ class StartPage(Frame):
         self.checkbox_frame = Frame(self.window, relief="sunken")
         self.checkbox_frame.grid(row=1, column=0, ipady=20, sticky="ew")
 
-        self.seq_list = \
-            ['SSP', 'XGRAD', 'YGRAD', 'ZGRAD', 'RHO1', 'RHO2', 'THETA1', 'THETA2']
+        self.seq_list = ['SSP', 'XGRAD', 'YGRAD', 'ZGRAD',
+                         'RHO1', 'RHO2', 'THETA1', 'THETA2']
 
         # Event handler for selecting desired boards
         self.board_choice = CheckBar(self.entry_frame, picks=self.seq_list)
@@ -170,8 +162,8 @@ class StartPage(Frame):
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
 
         # board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
-        y = board_waveform(self.xml.waveforms, board_num, self.xml.stop_condition)
-        self.board_choice.play_choice(self.canvas, self.plot_fig, self.axes, x, y, self.seq_list, board_num)
+        # x, y = board_waveform(self.xml.waveforms, board_num, self.xml.stop_condition)
+        # self.board_choice.play_choice(self.canvas, self.plot_fig, self.axes, self.seq_list)
 
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
