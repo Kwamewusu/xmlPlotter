@@ -32,9 +32,12 @@ def board_waveform(waveforms, board_num, shot_count):
 
 
 def setup_axes(app_fig):
+    # https: // stackoverflow.com / questions / 29832055 / animated - subplots - using - matplotlib
+    axes_dict = {}
     fig_axes = (app_fig.add_subplot(1, 8, i+1) for i in range(8))
-
-    yield fig_axes
+    for axes in fig_axes:
+        axes_dict[axes] = axes.plot([], [], lw=2)
+        yield axes_dict
 
 
 def pick_board(app_canvas, app_fig, fig_axes, x_val, y_val, boards, board_num):
