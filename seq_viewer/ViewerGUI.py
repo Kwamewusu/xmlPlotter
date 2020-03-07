@@ -1,15 +1,16 @@
 # Modules for GUI
 from os import getcwd
-from tkinter import Tk, Frame, Checkbutton, IntVar, StringVar, Label, Entry
+from tkinter import Tk, Frame, Checkbutton, IntVar, StringVar, Entry
 from tkinter import filedialog
-from tkinter.ttk import Button
+from tkinter.ttk import Button, LabelFrame
 
 # Modules for interactive plotting in GUI
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
-from PlotAnimator import setup_axes, pick_board, unpick_board, board_waveform
+from PlotAnimator import setup_axes, pick_board, unpick_board, board_waveform,\
+    wave_to_plot
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -96,7 +97,7 @@ class StartPage(Frame):
 
         # Instance variables fro the first row of widgets
         self.entry_frame = Frame(self.window, relief="raised")
-        self.entry_frame.grid(row=0, column=0, pady=10, sticky="ew")
+        self.entry_frame.grid(row=0, column=0, sticky="ew")
 
         # Event handlers for displaying user's desired directory
         self.choice_display = Entry(self.entry_frame, width=105)
@@ -107,14 +108,14 @@ class StartPage(Frame):
         self.user_choice()
 
         # Instance variables for the second row of widgets
-        self.checkbox_frame = Frame(self.window, relief="sunken")
-        self.checkbox_frame.grid(row=1, column=0, ipady=20, sticky="ew")
+        self.checkbox_frame = LabelFrame(self.window, text="Boards", relief="sunken")
+        self.checkbox_frame.grid(row=1, column=0, columnspan=2, sticky="ew")
 
         self.seq_list = ['SSP', 'XGRAD', 'YGRAD', 'ZGRAD',
                          'RHO1', 'RHO2', 'THETA1', 'THETA2']
 
         # Event handler for selecting desired boards
-        self.board_choice = CheckBar(self.entry_frame, picks=self.seq_list)
+        self.board_options = CheckBar(self.checkbox_frame, picks=self.seq_list)
         self.show_options()
 
         # Instance variable for third row of widgets
@@ -129,12 +130,12 @@ class StartPage(Frame):
         # Object that contains XML paths and file counts
         self.xml = GetXMLPath()
 
+        self.axes = setup_axes(self.plot_fig)
+        self.canvas_setup()
+
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
         self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
-
-        self.axes = setup_axes(self.plot_fig)
-        self.canvas_setup()
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -147,12 +148,9 @@ class StartPage(Frame):
         self.choice_display.grid(row=0, column=1)
 
     def show_options(self):
-        # Label for the check-box frame
-        checkbox_label = Label(self.window, text="Boards")
-        checkbox_label.grid(row=0, column=0, ipady=0, sticky="w")
-
-        self.board_choice.grid(row=2, column=0, pady=20, sticky="ew")
-        self.board_choice.grid_configure(row=3, column=0, columnspan=2)
+        # Set in label for the check-box frame
+        self.board_options.grid(row=1, column=0, columnspan=2, sticky="ew")
+        self.board_options.grid_configure(row=2, column=0)
 
     def canvas_setup(self):
         self.toolbar.update()
@@ -161,9 +159,16 @@ class StartPage(Frame):
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
 
-        # board_count = self.board_choice.boards_picked(self.board_choice.check_vars)
-        # x, y = board_waveform(self.xml.waveforms, board_num, self.xml.stop_condition)
-        # self.board_choice.play_choice(self.canvas, self.plot_fig, self.axes, self.seq_list)
+    def data_gen(self):
+        exciter_data = board_waveform(self.xml.waveforms, self.board_options.board_num,
+                                      self.xml.stop_condition)
+        return exciter_data
+
+    def player(self):
+        x_val, y_val = wave_to_plot(xtr, shot)
+        self.axes[self.board_options.board_num].set_data(x, y)
+
+        return self.axes[self.board_options.board_num]
 
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
@@ -182,49 +187,6 @@ class StartPage(Frame):
         self.xml.waveforms.append(xml_root(xml_paths, shot_count))
 
 
-# class Plotter(Frame):
-#
-#    LARGE_FONT = ("Veranda", 12)
-#
-#    def __init__(self, parent, controller):
-#        Frame.__init__(self, parent)
-#
-#        self.controller = controller
-#        self.window = parent
-#
-#        self.start_page = self.controller.get_page(StartPage)
-#
-#        # Label to appear at the top of this frame
-#        label = Label(self, text="Interactive Plot", font=self.LARGE_FONT)
-#        label.pack(padx=10, pady=10)
-#
-#        # Object that contain XML paths and file counts
-#        self.xml = GetXMLPath()
-#
-#        # Event handler for method that set up and plots the sequencers
-#        button1 = Button(self, text="Show Plot",
-#                         command=lambda: self.setup_plot())
-#        button1.pack()
-#
-#        # Event handler for returning to starting page
-#        button2 = Button(self, text="Start Page",
-#                         command=lambda: controller.show_frame(StartPage))
-#        button2.pack(side="bottom")
-#
-#        self.seq_plots = Figure()
-#        self.canvas = FigCanvas(self.seq_plots, self)
-#
-#        toolbar = NavTb2(self.canvas, self)
-#        toolbar.update()
-#        toolbar.pack()
-#
-#        self.canvas.draw()
-#        self.canvas.get_tk_widget().pack(side='top', fill='both')
-#        self.canvas.tkcanvas.pack(side='top', fill='both', expand=True)
-#
-#
-#    def get_waveforms(self, xml_paths, shot_count):
-#        self.xml.waveforms.append(xml_root(xml_paths, shot_count))
 
 
 class MainContainer(Tk):
