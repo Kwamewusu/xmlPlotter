@@ -9,6 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
+from matplotlib.animation import FuncAnimation
 from PlotAnimator import setup_axes, pick_board, unpick_board, board_waveform,\
     wave_to_plot
 from GUIFileRetrieve import GetXMLPath
@@ -47,9 +48,10 @@ class CheckBar(Frame):
         self.btn_bind = list()
 
         self.board_num = IntVar()
+        self.fig = object()
 
         self.xml_info = dict()
-        self.axes_list = dict()
+        self.axes_list = list()
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -69,8 +71,10 @@ class CheckBar(Frame):
 
         if board.get() == 1:
             board.set(1)
+            self.animator()
         else:
             board.set(0)
+            unpick_board(fig)
 
         self.board_num.set(board_obj)
 
@@ -86,6 +90,23 @@ class CheckBar(Frame):
     #    count = sum(states)
 
     #    return count
+
+    def data_gen(self, board_num):
+        for t in range(self.xml_info["xml_count"]):
+            exciter_data = board_waveform(self.xml_info["waveforms"], board_num, t)
+            yield exciter_data
+
+    def player(self, data):
+        x_val, y_val = wave_to_plot(data, self.xml_info["xml_count"])
+        self.xml_info[self.axes_list[self.board_num.get()]].set_data(x_val, y_val)
+
+        return self.axes_list[self.board_num.get()]
+
+    def animator(self):
+        animate = FuncAnimation(self.fig, self.player, self.data_gen,
+                                blit=True, interval=50, repeat=False)
+
+        self.fig.show()
 
 
 class StartPage(Frame):
