@@ -40,13 +40,16 @@ class CheckBar(Frame):
     def __init__(self, parent=None, picks=None):
         Frame.__init__(self, parent)
 
-        picks = picks or []
+        picks = picks or list()
 
-        self.check_btn = {}
-        self.check_vars = []
-        self.btn_bind = []
+        self.check_btn = dict()
+        self.check_vars = list()
+        self.btn_bind = list()
 
         self.board_num = IntVar()
+
+        self.xml_info = dict()
+        self.axes_list = dict()
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -107,6 +110,9 @@ class StartPage(Frame):
 
         self.user_choice()
 
+        # Object that contains XML paths and file counts
+        self.xml = GetXMLPath()
+
         # Instance variables for the second row of widgets
         self.checkbox_frame = LabelFrame(self.window, text="Boards", relief="sunken")
         self.checkbox_frame.grid(row=1, column=0, columnspan=2, sticky="ew")
@@ -127,10 +133,7 @@ class StartPage(Frame):
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
-        # Object that contains XML paths and file counts
-        self.xml = GetXMLPath()
-
-        self.axes = setup_axes(self.plot_fig)
+        # self.axes = setup_axes(self.plot_fig)
         self.canvas_setup()
 
         # Instance variable for third row of widgets
@@ -159,17 +162,6 @@ class StartPage(Frame):
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
 
-    def data_gen(self):
-        exciter_data = board_waveform(self.xml.waveforms, self.board_options.board_num,
-                                      self.xml.stop_condition)
-        return exciter_data
-
-    def player(self):
-        x_val, y_val = wave_to_plot(xtr, shot)
-        self.axes[self.board_options.board_num].set_data(x, y)
-
-        return self.axes[self.board_options.board_num]
-
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
 
@@ -178,6 +170,8 @@ class StartPage(Frame):
         self.choice_show()
 
         self.choice_display.config(state="disable")
+        self.setup_plot()
+        self.checkbox_frame.after(10, self.update_checkbox())
 
     def setup_plot(self):
         self.xml.get_xml_list(self.xml_dir.get())
@@ -186,7 +180,31 @@ class StartPage(Frame):
     def get_waveforms(self, xml_paths, shot_count):
         self.xml.waveforms.append(xml_root(xml_paths, shot_count))
 
+#    def data_gen(self):
+#        for t in range(self.xml.stop_condition):
+#            exciter_data = board_waveform(self.xml.waveforms,
+#                                          self.board_options.board_num, t)
+#            yield exciter_data
+#
+#    def player(self, data):
+#        x_val, y_val = wave_to_plot(data, self.xml.stop_condition)
+#        self.axes[self.board_options.board_num].set_data(x_val, y_val)
+#
+#        return self.axes[self.board_options.board_num]
+#
+#    def animator(self):
+#        animate = FuncAnimation(self.plot_fig, self.player, self.data_gen,
+#                                blit=True, interval=50, repeat=False)
+#
+#        self.plot_fig.show()
+#
+    def update_checkbox(self):
+        self.board_options.xml_info["waveforms"] = self.xml.waveforms
+        self.board_options.xml_info["xml_count"] = self.xml.stop_condition
+        self.board_options.xml_info["axes"] = setup_axes(self.plot_fig)
 
+        self.board_options.fig = self.plot_fig
+        self.board_options.axes_list = list(self.board_options.xml_info["axes"].keys())
 
 
 class MainContainer(Tk):
