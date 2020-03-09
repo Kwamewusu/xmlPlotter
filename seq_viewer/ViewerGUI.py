@@ -49,6 +49,7 @@ class CheckBar(Frame):
 
         self.board_num = IntVar()
         self.fig = object()
+        self.canvas = object()
 
         self.xml_info = dict()
         self.axes_list = list()
@@ -69,14 +70,32 @@ class CheckBar(Frame):
 
     def toggle(self, board, board_obj):
 
+        self.board_num.set(board_obj)
+
         if board.get() == 1:
             board.set(1)
-            self.animator()
+            shot_data = self.data_gen(board_id=board_obj)
+            self.test_plot(shot_data=shot_data, num=board_obj)
+            # self.animator()
         else:
             board.set(0)
-            unpick_board(fig)
+            unpick_board(self.fig)
 
-        self.board_num.set(board_obj)
+    def test_plot(self, shot_data, num):
+
+        x_val, y_val = wave_to_plot(shot_data, self.xml_info["xml_count"])
+        self.xml_info[self.axes_list[self.board_num.get()]].set_data(x_val, y_val)
+        # fig_axes.plot(x_val, y_val, 'b-')
+        self.xml_info[self.axes_list[self.board_num.get()]].set_xlabel('Time (us)')
+        self.xml_info[self.axes_list[self.board_num.get()]].set_ylabel('Amplitude (a.u)')
+        self.xml_info[self.axes_list[self.board_num.get()]].autoscale(enable=True, axis='x')
+        self.xml_info[self.axes_list[self.board_num.get()]].set_title('Sequence {0} Board'.format(self.boards[num]))
+
+        self.fig.subplots_adjust(hspace=1.5)
+        # plt.rc('font', size=8)
+        # plt.rc('axes', titlesize=8)
+
+        self.canvas.draw()
 
     def play_choice(self, canvas, fig, ax, x_val, y_val, boards):
         for i, button in enumerate(self.check_btn):
@@ -91,10 +110,12 @@ class CheckBar(Frame):
 
     #    return count
 
-    def data_gen(self, board_num):
-        for t in range(self.xml_info["xml_count"]):
-            exciter_data = board_waveform(self.xml_info["waveforms"], board_num, t)
-            yield exciter_data
+    def data_gen(self, board_id):
+        # for t in range(self.xml_info["xml_count"]):
+        #     exciter_data = board_waveform(self.xml_info["waveforms"], board_num, t)
+        #     yield exciter_data
+        exciter_data = board_waveform(self. xml_info["waveforms"], board_id, 0)
+        return exciter_data
 
     def player(self, data):
         x_val, y_val = wave_to_plot(data, self.xml_info["xml_count"])
@@ -225,6 +246,7 @@ class StartPage(Frame):
         self.board_options.xml_info["axes"] = setup_axes(self.plot_fig)
 
         self.board_options.fig = self.plot_fig
+        self.board_options.canvas = self.canvas
         self.board_options.axes_list = list(self.board_options.xml_info["axes"].keys())
 
 
