@@ -29,7 +29,7 @@ def xml_itemize(convention, text):
         no_ext: int = 1
 
     if token:
-        return int(token.group(1))
+        return int(token.group(1)) or int(token.group(0))
     elif no_ext:
         return text
     else:
