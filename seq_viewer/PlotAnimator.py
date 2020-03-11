@@ -18,9 +18,9 @@ def wave_to_plot(wave, t):
     return x, y
 
 
-def board_waveform(waveforms, board_id, shot_count):
+def board_waveform(waveforms, board_num, shot_count):
     ssp_endings = ssp_end_time(waveforms, shot_count)
-    wave_store = extract_wfm(waveforms, board_id, shot_count)
+    wave_store = extract_wfm(waveforms, board_num, shot_count)
 
     wave, idx_to_cut = scale_time(wave_store, ssp_endings, shot_count)
 
@@ -32,11 +32,10 @@ def board_waveform(waveforms, board_id, shot_count):
 def setup_axes(app_fig):
     # https: // stackoverflow.com / questions / 29832055 / animated - subplots - using - matplotlib
     axes_dict = {}
-    fig_axes = (app_fig.add_subplot(1, 8, i+1) for i in range(8))
+    fig_axes = (app_fig.add_subplot(8, 1, i+1) for i in range(8))
     for axes in fig_axes:
         axes_dict[axes] = axes.plot([], [], lw=2)
         # yield axes_dict
-
     return axes_dict
 
 
