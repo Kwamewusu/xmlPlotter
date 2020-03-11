@@ -21,16 +21,14 @@ def xml_itemize(convention, text):
         pattern = '\w+\.xml\.(\d+)'
         # Identify the time point of each shot/time-point recorded
         token = search(pattern, text)
+        return int(token.group(1))
     elif convention == 1:
         pattern = '\w+\.xml'
         # Identify the time point of each shot/time-point recorded
         token = search(pattern, text)
+        return token.group(0)
     elif convention == 2:
         no_ext: int = 1
-
-    if token:
-        return int(token.group(1)) or int(token.group(0))
-    elif no_ext:
         return text
     else:
         raise UserWarning(
