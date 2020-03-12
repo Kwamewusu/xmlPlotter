@@ -74,11 +74,12 @@ class CheckBar(Frame):
 
         if board.get() == 1:
             board.set(1)
-            shot_data = self.data_gen(board_obj)
-            self.test_plot(shot_data, board_obj)
+            # shot_data = self.data_gen(board_obj)
+            # self.test_plot(shot_data, board_obj)
+            self.animator(board_obj)
         else:
             board.set(0)
-            unpick_board(self.fig)
+            unpick_board(self.axes_list[board_obj])
 
         # self.animator()
         # self.data_gen(board_obj)
@@ -107,31 +108,34 @@ class CheckBar(Frame):
         for i, button in enumerate(self.check_btn):
             self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
 
-    # @staticmethod
-    # def boards_picked(boards):
-    #    states = [board.get() for board in boards]
-    #    count = sum(states)
-
-    #    return count
-
     def data_gen(self, board_num):
-        #        for t in range(1, self.xml_info["xml_count"]):
-        #            exciter_data = board_waveform(self.xml_info["waveforms"], board_num, t)
-        #            yield exciter_data
-        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num, 1)
-        return exciter_data
+        for t in range(1, self.xml_info["xml_count"]):
+            exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num, t)
+            yield exciter_data
+        #        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num, 1)
+        #        return exciter_data
 
     def player(self, data):
-        x_val, y_val = wave_to_plot(data, self.xml_info["xml_count"])
-        self.xml_info[self.axes_list[self.board_num.get()]].set_data(x_val, y_val)
+        x_val, y_val = [], []
+        for wave in data:
+            x_data, y_data = wave_to_plot(wave, self.xml_info["xml_count"])
+            x_val.append(x_data)
+            y_val.append(y_data)
+            ylim = [min(y_data), max(y_data)]
+            xlim = [min(x_data), max(x_data)]
+            self.axes_list[self.board_num.get()].set_xlim(xlim[0], xlim[1])
+            self.axes_list[self.board_num.get()].set_ylim(ylim[0], ylim[1])
 
-        return self.axes_list[self.board_num.get()]
+        self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
+        self.after(500, self.fig.clear())
 
-    def animator(self):
-        animate = FuncAnimation(self.fig, self.player, self.data_gen,
+        return self.xml_info["axes"][self.axes_list[self.board_num.get()]]
+
+    def animator(self, board_num):
+        animate = FuncAnimation(self.fig, self.player, self.data_gen(board_num),
                                 blit=True, interval=50, repeat=False)
 
-        self.fig.show()
+        self.canvas.draw()
 
 
 class StartPage(Frame):
@@ -175,7 +179,7 @@ class StartPage(Frame):
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
         # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure()
+        self.plot_fig = Figure(figsize=[7.0, 7.75])
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
@@ -228,24 +232,6 @@ class StartPage(Frame):
     def get_waveforms(self, xml_paths, shot_count):
         self.xml.waveforms.append(xml_root(xml_paths, shot_count))
 
-    #    def data_gen(self):
-    #        for t in range(self.xml.stop_condition):
-    #            exciter_data = board_waveform(self.xml.waveforms,
-    #                                          self.board_options.board_num, t)
-    #            yield exciter_data
-    #
-    #    def player(self, data):
-    #        x_val, y_val = wave_to_plot(data, self.xml.stop_condition)
-    #        self.axes[self.board_options.board_num].set_data(x_val, y_val)
-    #
-    #        return self.axes[self.board_options.board_num]
-    #
-    #    def animator(self):
-    #        animate = FuncAnimation(self.plot_fig, self.player, self.data_gen,
-    #                                blit=True, interval=50, repeat=False)
-    #
-    #        self.plot_fig.show()
-    #
     def update_checkbox(self):
         self.board_options.xml_info["waveforms"] = self.xml.waveforms
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
