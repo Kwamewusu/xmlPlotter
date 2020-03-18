@@ -8,12 +8,15 @@ from backend_exciters import ssp_end_time, extract_wfm, scale_time, \
 
 # Module for animation
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import TimedAnimation, FuncAnimation
+# , TimedAnimation
 
 
 def wave_to_plot(wave, t):
     x = wave[t, 0, :]
     y = wave[t, 1, :]
+    # x = wave[0, :]
+    # y = wave[1, :]
 
     return x, y
 
@@ -34,7 +37,7 @@ def setup_axes(app_fig):
     axes_dict = {}
     fig_axes = (app_fig.add_subplot(8, 1, i+1) for i in range(8))
     for axes in fig_axes:
-        axes_dict[axes] = axes.plot([], [], lw=2)
+        axes_dict[axes] = axes.plot([], [], lw=1)
         # yield axes_dict
     return axes_dict
 
@@ -128,3 +131,47 @@ class AnimateShots(FuncAnimation, Frame):
         btn_one_up.grid(row=1, column=2)
         btn_stop.grid(row=1, column=1)
         btn_one_down.grid(row=1, column=0)
+
+
+class ShotAnimator(TimedAnimation):
+    def __init__(self, fig=None):
+        self.boards_to_animate = dict()
+        self.axes_to_animate = dict()
+        self.line_of_axes = dict()
+        self.shot_len = int()
+        self.fig = None or fig
+
+        TimedAnimation.__init__(self, self.fig, interval=500, blit=False)
+
+    def _draw_frame(self, framedata):
+        shot = framedata
+        self._drawn_artists = []
+        self.boards_picked = list(self.boards_to_animate.keys())
+
+        x_val, y_val = [], []
+        for board in self.boards_picked:
+            x_data, y_data = wave_to_plot(self.boards_to_animate[board], shot)
+            x_val.append(x_data)
+            y_val.append(y_data)
+            y_lim = [min(y_data), max(y_data)]
+            x_lim = [min(x_data), max(x_data)]
+            self.axes_to_animate[board].set_xlim(x_lim[0], x_lim[1])
+            self.axes_to_animate[board].set_ylim(y_lim[0], y_lim[1])
+            self.line_of_axes[board][0].set_data(x_val, y_val)
+
+    def new_frame_seq(self):
+        return iter(range(self.shot_len))
+
+    def add_shots(self, board, exciter_data):
+        self.boards_to_animate[board] = exciter_data
+
+    def remove_shots(self, board):
+        self.boards_to_animate.pop(board)
+
+    def add_subplot(self, board, idx):
+        self.axes_to_animate[board] = self.fig.add_subplot(8, 1, idx)
+        self.line_of_axes[board] = self.axes_to_animate[board].plot([], [], lw=1)
+
+    def remove_subplot(self, board):
+        self.fig.delaxes(self.axes_to_animate[board])
+        self.axes_to_animate.pop(board)

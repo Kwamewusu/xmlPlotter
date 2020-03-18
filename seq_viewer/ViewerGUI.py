@@ -10,8 +10,7 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
 from matplotlib.animation import FuncAnimation
-from PlotAnimator import setup_axes, pick_board, unpick_board, board_waveform, \
-    wave_to_plot
+from PlotAnimator import unpick_board, board_waveform, ShotAnimator
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -25,15 +24,15 @@ def get_file(window):
     return file_loc
 
 
-def on_off_actions(event, canvas, fig, ax, boards, board_num, waveform, shot_count):
-    # state = [var.get() for var in self.check_vars]
-    # all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
-    x, y = board_waveform(waveform, board_num, shot_count)
-
-    if event:
-        pick_board(canvas, fig, ax, x, y, boards, board_num)
-    else:
-        unpick_board(fig)
+# def on_off_actions(event, canvas, fig, ax, boards, board_num, waveform, shot_count):
+#     # state = [var.get() for var in self.check_vars]
+#     # all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
+#     x, y = board_waveform(waveform, board_num, shot_count)
+#
+#     if event:
+#         pick_board(canvas, fig, ax, x, y, boards, board_num)
+#     else:
+#         unpick_board(fig)
 
 
 class CheckBar(Frame):
@@ -45,14 +44,16 @@ class CheckBar(Frame):
 
         self.check_btn = dict()
         self.check_vars = list()
-        self.btn_bind = list()
 
         self.board_num = IntVar()
+        self.boards_shown = 0
+
         self.fig = object()
         self.canvas = object()
+        self.animator_obj = object()
 
         self.xml_info = dict()
-        self.axes_list = list()
+        self.axes_dict = dict()
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -64,78 +65,80 @@ class CheckBar(Frame):
 
         for i, button in enumerate(self.check_btn):
             self.check_btn[i]["command"] = \
-                lambda board=self.check_vars[i], board_obj=button: self.toggle(board, board_obj)
+                lambda board=self.check_vars[i], id_num=button: self.toggle(board, id_num)
 
             self.check_btn[i].pack(side="left", anchor="w", expand=True)
 
-    def toggle(self, board, board_obj):
+    def toggle(self, board, id_num):
 
-        self.board_num.set(board_obj)
+        self.board_num.set(id_num)
 
         if board.get() == 1:
             board.set(1)
-            # shot_data = self.data_gen(board_obj)
+            self.boards_shown += 1
+            shot_data = self.data_gen(id_num)
+            self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
+            self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown)
+            self.animator_obj._draw_frame(0)
             # self.test_plot(shot_data, board_obj)
-            self.animator(board_obj)
+            # self.animator(board_obj)
+
+            # board.bind('<ButtonRelease-1>', self.send_to_animator(board, shot_data))
         else:
             board.set(0)
-            unpick_board(self.axes_list[board_obj])
+            self.boards_shown -= 1
+            unpick_board(self.axes_dict[id_num])
+            self.axes_dict.pop(self.check_btn[id_num])
+            self.animator_obj.remove_shots(self.check_btn[id_num])
+            self.animator_obj.remove_subplot(self.check_btn[id_num], self.boards_shown)
 
-        # self.animator()
-        # self.data_gen(board_obj)
+#     def test_plot(self, shot_data, num):
+#         x_val, y_val = wave_to_plot(shot_data, self.xml_info["xml_count"]-1)
+#         self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
+#         self.axes_list[self.board_num.get()].set_xlabel('Time (us)')
+#         self.axes_list[self.board_num.get()].set_ylabel('Amplitude (a.u.)')
+#         self.axes_list[self.board_num.get()].autoscale(enable=True, axis='x')
+#         self.axes_list[self.board_num.get()].set_xlabel('Sequence {0} Board'.format(self.boards[num]))
+#
+#         self.fig.subplots_adjust(hspace=1.5)
+#         self.canvas.draw()
 
-        # animate = FuncAnimation(self.plot_fig, self.player, self.data_gen,
-        #                         blit=True, interval=50, repeat=False)
-
-        # self.plot_fig.show()
-
-    def test_plot(self, shot_data, num):
-        x_val, y_val = wave_to_plot(shot_data, self.xml_info["xml_count"]-1)
-        self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
-        self.axes_list[self.board_num.get()].set_xlabel('Time (us)')
-        self.axes_list[self.board_num.get()].set_ylabel('Amplitude (a.u.)')
-        self.axes_list[self.board_num.get()].autoscale(enable=True, axis='x')
-        self.axes_list[self.board_num.get()].set_xlabel('Sequence {0} Board'.format(self.boards[num]))
-
-        self.fig.subplots_adjust(hspace=1.5)
-        self.canvas.draw()
-
-    def play_choice(self, func):
-        # for i, button in enumerate(self.check_btn):
-        #     self.btn_bind.append(button.bind("<Button-1>",
-        #                                      on_off_actions(button, canvas, fig, ax, x_val, y_val,
-        #                                                     boards, self.board_num.get())))
-        for i, button in enumerate(self.check_btn):
-            self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
+#     def play_choice(self, func):
+#         for i, button in enumerate(self.check_btn):
+#             self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
 
     def data_gen(self, board_num):
-        for t in range(1, self.xml_info["xml_count"]):
-            exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num, t)
-            yield exciter_data
-        #        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num, 1)
-        #        return exciter_data
+        # Provides the x, y information from all shot for a board
+        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num,
+                                      self.xml_info["xml_count"])
+        return exciter_data
 
-    def player(self, data):
-        x_val, y_val = [], []
-        for wave in data:
-            x_data, y_data = wave_to_plot(wave, self.xml_info["xml_count"])
-            x_val.append(x_data)
-            y_val.append(y_data)
-            ylim = [min(y_data), max(y_data)]
-            xlim = [min(x_data), max(x_data)]
-            self.axes_list[self.board_num.get()].set_xlim(xlim[0], xlim[1])
-            self.axes_list[self.board_num.get()].set_ylim(ylim[0], ylim[1])
+#     def player(self, data):
+#         x_val, y_val = [], []
+#         for wave in data:
+#             x_data, y_data = wave_to_plot(wave, self.xml_info["xml_count"])
+#             x_val.append(x_data)
+#             y_val.append(y_data)
+#             ylim = [min(y_data), max(y_data)]
+#             xlim = [min(x_data), max(x_data)]
+#             self.axes_list[self.board_num.get()].set_xlim(xlim[0], xlim[1])
+#             self.axes_list[self.board_num.get()].set_ylim(ylim[0], ylim[1])
+#             self.axes_list[self.board_num.get()].set_xlabel('Time (us)')
+#             self.axes_list[self.board_num.get()].set_ylabel('Amplitude (a.u.)')
+#             self.axes_list[self.board_num.get()].autoscale(enable=True, axis='x')
+#             self.axes_list[self.board_num.get()].set_xlabel('Sequence {0} Board'.
+#                                                             format(self.boards[self.board_num.get()]))
+#
+#         self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
+        # self.after(500, self.fig.clear())
 
-        self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
-        self.after(500, self.fig.clear())
+#         return self.xml_info["axes"][self.axes_list[self.board_num.get()]]
 
-        return self.xml_info["axes"][self.axes_list[self.board_num.get()]]
-
-    def animator(self, board_num):
-        animate = FuncAnimation(self.fig, self.player, self.data_gen(board_num),
-                                blit=True, interval=50, repeat=False)
-
-        self.canvas.draw()
+#     def animator(self, board_num):
+#         animate = FuncAnimation(self.fig, self.player, self.data_gen(board_num),
+#                                 blit=False, interval=50, repeat=False)
+#
+#         self.canvas.draw()
 
 
 class StartPage(Frame):
@@ -179,12 +182,12 @@ class StartPage(Frame):
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
         # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure(figsize=[7.0, 7.75])
+        self.plot_fig = Figure(figsize=[7.0, 7.50])
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
-        # self.axes = setup_axes(self.plot_fig)
         self.canvas_setup()
+        self.animator = ShotAnimator(self.plot_fig)
 
         # self.board_options.play_choice(self.animator)
 
@@ -235,11 +238,12 @@ class StartPage(Frame):
     def update_checkbox(self):
         self.board_options.xml_info["waveforms"] = self.xml.waveforms
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
-        self.board_options.xml_info["axes"] = setup_axes(self.plot_fig)
+
+        self.animator.shot_len = self.xml.stop_condition
+        self.board_options.animator_obj = self.animator
 
         self.board_options.fig = self.plot_fig
         self.board_options.canvas = self.canvas
-        self.board_options.axes_list = list(self.board_options.xml_info["axes"].keys())
 
 
 class MainContainer(Tk):
