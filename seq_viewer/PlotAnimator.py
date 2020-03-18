@@ -9,14 +9,11 @@ from backend_exciters import ssp_end_time, extract_wfm, scale_time, \
 # Module for animation
 import matplotlib.pyplot as plt
 from matplotlib.animation import TimedAnimation, FuncAnimation
-# , TimedAnimation
 
 
 def wave_to_plot(wave, t):
     x = wave[t, 0, :]
     y = wave[t, 1, :]
-    # x = wave[0, :]
-    # y = wave[1, :]
 
     return x, y
 
@@ -30,16 +27,6 @@ def board_waveform(waveforms, board_num, shot_count):
     xtr = wave_truncate(wave, idx_to_cut, shot_count)
 
     return xtr
-
-
-def setup_axes(app_fig):
-    # https: // stackoverflow.com / questions / 29832055 / animated - subplots - using - matplotlib
-    axes_dict = {}
-    fig_axes = (app_fig.add_subplot(8, 1, i+1) for i in range(8))
-    for axes in fig_axes:
-        axes_dict[axes] = axes.plot([], [], lw=1)
-        # yield axes_dict
-    return axes_dict
 
 
 def pick_board(app_canvas, app_fig, fig_axes, x_val, y_val, boards, board_num):
@@ -142,7 +129,7 @@ class ShotAnimator(TimedAnimation):
         self.fig = fig
         self.canvas = canvas
 
-        TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
+        TimedAnimation.__init__(self, self.fig, interval=500, blit=False)
 
     def _pre_draw(self, framedata, blit=False):
         for board in self.boards_picked:
@@ -170,8 +157,7 @@ class ShotAnimator(TimedAnimation):
             self.line_of_axes[board][0].set_data(x_val, y_val)
 
             self._drawn_artists.append(self.line_of_axes[board][0])
-
-        # self.canvas.draw()
+            self.canvas.draw_idle()
 
     def new_frame_seq(self):
         return iter(range(self.shot_len))
