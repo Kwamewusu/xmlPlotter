@@ -83,14 +83,15 @@ class CheckBar(Frame):
             # self.test_plot(shot_data, board_obj)
             # self.animator(board_obj)
 
-            # board.bind('<ButtonRelease-1>', self.send_to_animator(board, shot_data))
         else:
             board.set(0)
             self.boards_shown -= 1
-            unpick_board(self.axes_dict[id_num])
+            unpick_board(self.axes_dict[self.check_btn[id_num]])
             self.axes_dict.pop(self.check_btn[id_num])
             self.animator_obj.remove_shots(self.check_btn[id_num])
             self.animator_obj.remove_subplot(self.check_btn[id_num], self.boards_shown)
+
+        # board.bind('<ButtonRelease-1>', self.play_choice())
 
     def data_gen(self, board_num):
         # Provides the x, y information from all shot for a board
@@ -100,10 +101,11 @@ class CheckBar(Frame):
 
     def play_choice(self):
         iterator = self.animator_obj.new_frame_seq()
+        self.animator_obj._start()
         for t in iterator:
             self.animator_obj._draw_frame(t)
-            self.animator_obj._post_draw(t)
-            self.canvas.draw()
+            self.animator_obj._step()
+        # self.animator_obj._post_draw(t)
 #        for i, button in enumerate(self.check_btn):
 #            self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
 
@@ -191,14 +193,12 @@ class StartPage(Frame):
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
         # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure(figsize=[7.0, 7.50])
+        self.plot_fig = Figure(figsize=[7.0, 5.75])
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
         self.canvas_setup()
         self.animator = ShotAnimator(self.plot_fig, self.canvas)
-
-        # self.board_options.play_choice(self.animator)
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
