@@ -134,14 +134,23 @@ class AnimateShots(FuncAnimation, Frame):
 
 
 class ShotAnimator(TimedAnimation):
-    def __init__(self, fig=None):
+    def __init__(self, fig, canvas):
         self.boards_to_animate = dict()
         self.axes_to_animate = dict()
         self.line_of_axes = dict()
         self.shot_len = int()
-        self.fig = None or fig
+        self.fig = fig
+        self.canvas = canvas
 
-        TimedAnimation.__init__(self, self.fig, interval=500, blit=False)
+        TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
+
+    def _pre_draw(self, framedata, blit=False):
+        for board in self.boards_picked:
+            pass
+
+    def _post_draw(self, framedata, blit=False):
+        for board in self.boards_picked:
+            self.axes_to_animate[board].clear()
 
     def _draw_frame(self, framedata):
         shot = framedata
@@ -150,6 +159,7 @@ class ShotAnimator(TimedAnimation):
 
         x_val, y_val = [], []
         for board in self.boards_picked:
+            self.boards_picked.clear()
             x_data, y_data = wave_to_plot(self.boards_to_animate[board], shot)
             x_val.append(x_data)
             y_val.append(y_data)
@@ -158,6 +168,10 @@ class ShotAnimator(TimedAnimation):
             self.axes_to_animate[board].set_xlim(x_lim[0], x_lim[1])
             self.axes_to_animate[board].set_ylim(y_lim[0], y_lim[1])
             self.line_of_axes[board][0].set_data(x_val, y_val)
+
+            self._drawn_artists.append(self.line_of_axes[board][0])
+
+        # self.canvas.draw()
 
     def new_frame_seq(self):
         return iter(range(self.shot_len))

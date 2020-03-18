@@ -79,7 +79,7 @@ class CheckBar(Frame):
             shot_data = self.data_gen(id_num)
             self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
             self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown)
-            self.animator_obj._draw_frame(0)
+            self.play_choice()
             # self.test_plot(shot_data, board_obj)
             # self.animator(board_obj)
 
@@ -91,6 +91,21 @@ class CheckBar(Frame):
             self.axes_dict.pop(self.check_btn[id_num])
             self.animator_obj.remove_shots(self.check_btn[id_num])
             self.animator_obj.remove_subplot(self.check_btn[id_num], self.boards_shown)
+
+    def data_gen(self, board_num):
+        # Provides the x, y information from all shot for a board
+        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num,
+                                      self.xml_info["xml_count"])
+        return exciter_data
+
+    def play_choice(self):
+        iterator = self.animator_obj.new_frame_seq()
+        for t in iterator:
+            self.animator_obj._draw_frame(t)
+            self.animator_obj._post_draw(t)
+            self.canvas.draw()
+#        for i, button in enumerate(self.check_btn):
+#            self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
 
 #     def test_plot(self, shot_data, num):
 #         x_val, y_val = wave_to_plot(shot_data, self.xml_info["xml_count"]-1)
@@ -106,12 +121,6 @@ class CheckBar(Frame):
 #     def play_choice(self, func):
 #         for i, button in enumerate(self.check_btn):
 #             self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
-
-    def data_gen(self, board_num):
-        # Provides the x, y information from all shot for a board
-        exciter_data = board_waveform(self.xml_info["waveforms"][0], board_num,
-                                      self.xml_info["xml_count"])
-        return exciter_data
 
 #     def player(self, data):
 #         x_val, y_val = [], []
@@ -187,7 +196,7 @@ class StartPage(Frame):
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
         self.canvas_setup()
-        self.animator = ShotAnimator(self.plot_fig)
+        self.animator = ShotAnimator(self.plot_fig, self.canvas)
 
         # self.board_options.play_choice(self.animator)
 
