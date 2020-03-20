@@ -42,7 +42,6 @@ class CheckBar(Frame):
         self.boards_shown = 0
 
         self.fig = object()
-        self.canvas = object()
         self.animator_obj = object()
 
         self.xml_info = dict()
@@ -92,6 +91,9 @@ class CheckBar(Frame):
             self.animator_obj._draw_frame(t)
             self.animator_obj._post_draw(t)
 
+    def state(self):
+        pass
+
 
 class StartPage(Frame):
     """ Tkinter based class for single frame upon which widgets
@@ -137,18 +139,20 @@ class StartPage(Frame):
         self.canvas_frame = Frame(self.window, relief="sunken")
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
-        # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure(figsize=[7.0, 6.5])
-        # self.plot_fig.subplots_adjust(hspace=1.5)
+        # Instance variables for the figure
+        self.plot_fig = Figure(figsize=[7.0, 6.0])
+        self.plot_fig.subplots_adjust(hspace=1.5)
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
-        self.toolbar = NavTb2(self.canvas, self.canvas_frame)
-
-        self.canvas_setup()
-        self.animator = ShotAnimator(self.plot_fig)
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
         self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Instance variables for the animation and navigation of plots
+        self.toolbar = NavTb2(self.canvas, self.control_frame)
+
+        self.canvas_setup()
+        self.animator = ShotAnimator(self.plot_fig)
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -198,7 +202,6 @@ class StartPage(Frame):
         self.board_options.animator_obj = self.animator
 
         self.board_options.fig = self.plot_fig
-        self.board_options.canvas = self.canvas
 
 
 class MainContainer(Tk):
