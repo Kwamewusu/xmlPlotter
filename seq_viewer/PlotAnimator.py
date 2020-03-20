@@ -1,10 +1,14 @@
-# Modules for GUI
+# Modules for GUI #
 from tkinter import Frame
 from tkinter.ttk import Button
 
-# Modules for extracting waveforms
+# Modules for extracting waveforms #
 from backend_exciters import ssp_end_time, extract_wfm, scale_time, \
     wave_truncate
+
+# Modules for finding min and
+# max of an array object #
+from numpy import amin, amax
 
 # Module for animation
 import matplotlib.pyplot as plt
@@ -121,43 +125,32 @@ class AnimateShots(FuncAnimation, Frame):
 
 
 class ShotAnimator(TimedAnimation):
-    def __init__(self, fig, canvas):
+    def __init__(self, fig):
         self.boards_to_animate = dict()
         self.axes_to_animate = dict()
         self.line_of_axes = dict()
         self.shot_len = int()
         self.fig = fig
-        self.canvas = canvas
 
-        TimedAnimation.__init__(self, self.fig, interval=500, blit=False)
-
-    def _pre_draw(self, framedata, blit=False):
-        for board in self.boards_picked:
-            pass
+        TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
 
     def _post_draw(self, framedata, blit=False):
-        for board in self.boards_picked:
-            self.axes_to_animate[board].clear()
+        self.fig.canvas.draw_idle()
 
     def _draw_frame(self, framedata):
         shot = framedata
         self._drawn_artists = []
         self.boards_picked = list(self.boards_to_animate.keys())
 
-        x_val, y_val = [], []
         for board in self.boards_picked:
-            self.boards_picked.clear()
             x_data, y_data = wave_to_plot(self.boards_to_animate[board], shot)
-            x_val.append(x_data)
-            y_val.append(y_data)
-            y_lim = [min(y_data), max(y_data)]
-            x_lim = [min(x_data), max(x_data)]
+            y_lim = [amin(y_data, axis=0), amax(y_data, axis=0)]
+            x_lim = [amin(x_data, axis=0), amax(x_data, axis=0)]
             self.axes_to_animate[board].set_xlim(x_lim[0], x_lim[1])
             self.axes_to_animate[board].set_ylim(y_lim[0], y_lim[1])
-            self.line_of_axes[board][0].set_data(x_val, y_val)
+            self.line_of_axes[board][0].set_data(x_data, y_data)
 
-            self._drawn_artists.append(self.line_of_axes[board][0])
-            self.canvas.draw_idle()
+        self._drawn_artists.append(self.line_of_axes.values())
 
     def new_frame_seq(self):
         return iter(range(self.shot_len))
