@@ -1,4 +1,5 @@
-# Modules for text interpretation and math #
+# Modules for text interpretation and
+# storage of sequencer information#
 from re import search
 from numpy import zeros
 
@@ -7,10 +8,15 @@ from xml.etree.ElementTree import parse
 
 # Load XML files #
 
-# Function for picking XML file order
-
 
 def xml_itemize(convention, text):
+    """ Function for picking XML file order
+        Input:
+            - convention: integer for expected and unexpected pattern.
+            - text: file name of XML
+        Output:
+            - token: integer of file name, depending of convention.
+    """
     # Regular expression for naming convention of shots
     # recorded by the scanner
     token: int = 0
@@ -41,6 +47,13 @@ def function(sorted_list):
 
 
 def xml_sort(order, file_list):
+    """ Function for sorting XML files
+        Input:
+            - order: list of integers (not numerically ordered) as files are read.
+            - file_list: list of XML global addresses in the order they were read.
+        Output:
+            - sorted_list: numerically sorted list of XML global addresses.
+    """
     idx_n_list = zip(order, file_list)
     sorted_list = [x for x in idx_n_list]
 
@@ -49,10 +62,9 @@ def xml_sort(order, file_list):
     return list(sorted_list)
 
 
-# Loading Files
-
 def xml_root(xml_sets, shot_count):
-    """ Input:
+    """ Function for loading XML files
+        Input:
             - xml_sets: list of XML global addresses.
             - shot_count: file count representing the shots acquired.
         Output:
@@ -85,7 +97,8 @@ def xml_root(xml_sets, shot_count):
 
 
 def extract_wfm(wave_objects, seq, shot_count):
-    """ Input:
+    """ Function for extracting waveform information from loaded XML files
+        Input:
            - wave_objects: list of sequencer ElementTree objects for each
            time point.  
            - seq: sequencer name. 

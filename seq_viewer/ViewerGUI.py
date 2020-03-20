@@ -9,8 +9,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure
 
-from matplotlib.animation import FuncAnimation
-from PlotAnimator import unpick_board, board_waveform, ShotAnimator
+# Custom modules for plotting setting and extracting xml info
+from PlotAnimator import board_waveform, ShotAnimator
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -24,18 +24,11 @@ def get_file(window):
     return file_loc
 
 
-# def on_off_actions(event, canvas, fig, ax, boards, board_num, waveform, shot_count):
-#     # state = [var.get() for var in self.check_vars]
-#     # all_states = [self.board_set.append(i) for i, board in enumerate(state) if board == 1]
-#     x, y = board_waveform(waveform, board_num, shot_count)
-#
-#     if event:
-#         pick_board(canvas, fig, ax, x, y, boards, board_num)
-#     else:
-#         unpick_board(fig)
-
-
 class CheckBar(Frame):
+    """ Tkinter based class for generating a row of check-buttons
+    which a user can select. The methods used to generate the plots
+    are called from here.
+    """
 
     def __init__(self, parent=None, picks=None):
         Frame.__init__(self, parent)
@@ -53,7 +46,6 @@ class CheckBar(Frame):
         self.animator_obj = object()
 
         self.xml_info = dict()
-        self.axes_dict = dict()
 
         self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
                        4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
@@ -80,18 +72,12 @@ class CheckBar(Frame):
             self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
             self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown)
             self.play_choice()
-            # self.test_plot(shot_data, board_obj)
-            # self.animator(board_obj)
 
         else:
             board.set(0)
             self.boards_shown -= 1
-            unpick_board(self.axes_dict[self.check_btn[id_num]])
-            self.axes_dict.pop(self.check_btn[id_num])
             self.animator_obj.remove_shots(self.check_btn[id_num])
-            self.animator_obj.remove_subplot(self.check_btn[id_num], self.boards_shown)
-
-        # board.bind('<ButtonRelease-1>', self.play_choice())
+            self.animator_obj.remove_subplot(self.check_btn[id_num])
 
     def data_gen(self, board_num):
         # Provides the x, y information from all shot for a board
@@ -104,55 +90,14 @@ class CheckBar(Frame):
         self.animator_obj._start()
         for t in iterator:
             self.animator_obj._draw_frame(t)
-            self.animator_obj._step()
-        # self.animator_obj._post_draw(t)
-#        for i, button in enumerate(self.check_btn):
-#            self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
-
-#     def test_plot(self, shot_data, num):
-#         x_val, y_val = wave_to_plot(shot_data, self.xml_info["xml_count"]-1)
-#         self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
-#         self.axes_list[self.board_num.get()].set_xlabel('Time (us)')
-#         self.axes_list[self.board_num.get()].set_ylabel('Amplitude (a.u.)')
-#         self.axes_list[self.board_num.get()].autoscale(enable=True, axis='x')
-#         self.axes_list[self.board_num.get()].set_xlabel('Sequence {0} Board'.format(self.boards[num]))
-#
-#         self.fig.subplots_adjust(hspace=1.5)
-#         self.canvas.draw()
-
-#     def play_choice(self, func):
-#         for i, button in enumerate(self.check_btn):
-#             self.btn_bind.append(self.check_btn[i].bind("<Button-1>", func))
-
-#     def player(self, data):
-#         x_val, y_val = [], []
-#         for wave in data:
-#             x_data, y_data = wave_to_plot(wave, self.xml_info["xml_count"])
-#             x_val.append(x_data)
-#             y_val.append(y_data)
-#             ylim = [min(y_data), max(y_data)]
-#             xlim = [min(x_data), max(x_data)]
-#             self.axes_list[self.board_num.get()].set_xlim(xlim[0], xlim[1])
-#             self.axes_list[self.board_num.get()].set_ylim(ylim[0], ylim[1])
-#             self.axes_list[self.board_num.get()].set_xlabel('Time (us)')
-#             self.axes_list[self.board_num.get()].set_ylabel('Amplitude (a.u.)')
-#             self.axes_list[self.board_num.get()].autoscale(enable=True, axis='x')
-#             self.axes_list[self.board_num.get()].set_xlabel('Sequence {0} Board'.
-#                                                             format(self.boards[self.board_num.get()]))
-#
-#         self.xml_info["axes"][self.axes_list[self.board_num.get()]][0].set_data(x_val, y_val)
-        # self.after(500, self.fig.clear())
-
-#         return self.xml_info["axes"][self.axes_list[self.board_num.get()]]
-
-#     def animator(self, board_num):
-#         animate = FuncAnimation(self.fig, self.player, self.data_gen(board_num),
-#                                 blit=False, interval=50, repeat=False)
-#
-#         self.canvas.draw()
+            self.animator_obj._post_draw(t)
 
 
 class StartPage(Frame):
+    """ Tkinter based class for single frame upon which widgets
+    such as buttons, check-buttons, and entry are used as a
+    simple graphical user interface.
+    """
     LARGE_FONT = ("Veranda", 12)
 
     def __init__(self, parent, controller):
@@ -193,12 +138,13 @@ class StartPage(Frame):
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
         # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure(figsize=[7.0, 5.75])
+        self.plot_fig = Figure(figsize=[7.0, 6.5])
+        # self.plot_fig.subplots_adjust(hspace=1.5)
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
         self.toolbar = NavTb2(self.canvas, self.canvas_frame)
 
         self.canvas_setup()
-        self.animator = ShotAnimator(self.plot_fig, self.canvas)
+        self.animator = ShotAnimator(self.plot_fig)
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
@@ -256,6 +202,10 @@ class StartPage(Frame):
 
 
 class MainContainer(Tk):
+    """ Tkinter based class used to generate a single window
+    and contain a single frame. The frame contains multiple
+    widgets for user choice and visualization.
+    """
 
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)

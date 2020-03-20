@@ -1,12 +1,22 @@
+# Module for storing integers
+# during run-time
 from tkinter import IntVar
+
+# Modules for listing and
+# filtering file names
 from os import listdir
 from fnmatch import filter
+
+# Module for reading XML files
 from xml.etree.ElementTree import parse
 
 from backend_parser import xml_itemize, xml_sort
 
 
 class GetXMLPath:
+    """ Class for extracting and concatenating file names
+    from the desired directory.
+    """
     def __init__(self):
         self.xml_list = []
 
