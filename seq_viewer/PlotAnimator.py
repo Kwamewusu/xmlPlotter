@@ -132,6 +132,9 @@ class ShotAnimator(TimedAnimation):
         self.shot_len = int()
         self.fig = fig
 
+        self.boards = {0: 'SSP', 1: 'XGRAD', 2: 'YGRAD', 3: 'ZGRAD',
+                       4: 'RHO1', 5: 'RHO2', 6: 'THETA1', 7: 'THETA2'}
+
         TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
 
     def _post_draw(self, framedata, blit=False):
@@ -146,8 +149,12 @@ class ShotAnimator(TimedAnimation):
             x_data, y_data = wave_to_plot(self.boards_to_animate[board], shot)
             y_lim = [amin(y_data, axis=0), amax(y_data, axis=0)]
             x_lim = [amin(x_data, axis=0), amax(x_data, axis=0)]
-            self.axes_to_animate[board].set_xlim(x_lim[0], x_lim[1])
-            self.axes_to_animate[board].set_ylim(y_lim[0], y_lim[1])
+            self.axes_to_animate[board].set_xlim(xmin=x_lim[0], xmax=x_lim[1])
+            self.axes_to_animate[board].set_ylim(ymin=y_lim[0], ymax=y_lim[1])
+            self.axes_to_animate[board].set_ylabel('Amplitude (a.u.)')
+            self.axes_to_animate[board].autoscale(enable=True, axis='x')
+            self.axes_to_animate[board].set_title('Sequence {0} Board'.format(
+                self.boards[board_num]))
             self.line_of_axes[board][0].set_data(x_data, y_data)
 
         self._drawn_artists.append(self.line_of_axes.values())
@@ -163,7 +170,7 @@ class ShotAnimator(TimedAnimation):
 
     def add_subplot(self, board, idx):
         self.axes_to_animate[board] = self.fig.add_subplot(8, 1, idx)
-        self.line_of_axes[board] = self.axes_to_animate[board].plot([], [], lw=1)
+        self.line_of_axes[board] = self.axes_to_animate[board].plot([], [], 'b-', lw=1)
 
     def remove_subplot(self, board):
         self.fig.delaxes(self.axes_to_animate[board])
