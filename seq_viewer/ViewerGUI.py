@@ -7,7 +7,7 @@ from tkinter.ttk import Button, LabelFrame
 # Modules for interactive plotting in GUI
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
-from matplotlib.figure import Figure
+from matplotlib.figure import Figure, SubplotParams
 
 # Custom modules for plotting setting and extracting xml info
 from PlotAnimator import board_waveform, ShotAnimator
@@ -69,7 +69,8 @@ class CheckBar(Frame):
             self.boards_shown += 1
             shot_data = self.data_gen(id_num)
             self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
-            self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown)
+            self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown,
+                                          self.boards[id_num])
             self.play_choice()
 
         else:
@@ -90,9 +91,6 @@ class CheckBar(Frame):
         for t in iterator:
             self.animator_obj._draw_frame(t)
             self.animator_obj._post_draw(t)
-
-    def state(self):
-        pass
 
 
 class StartPage(Frame):
@@ -140,8 +138,9 @@ class StartPage(Frame):
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
         # Instance variables for the figure
-        self.plot_fig = Figure(figsize=[7.0, 6.0])
-        self.plot_fig.subplots_adjust(hspace=1.5)
+        params = SubplotParams(left=0.1, right=0.95, top=0.9, bottom=0.1)
+        self.plot_fig = Figure(figsize=[8.0, 6.0], subplotpars=params)
+        self.plot_fig.subplots_adjust(hspace=1.75)
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
 
         # Instance variable for third row of widgets
