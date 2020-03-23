@@ -152,6 +152,7 @@ class StartPage(Frame):
 
         self.canvas_setup()
         self.animator = ShotAnimator(self.plot_fig)
+        self.animator.stop_button(self.control_frame)
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -170,7 +171,7 @@ class StartPage(Frame):
 
     def canvas_setup(self):
         self.toolbar.update()
-        self.toolbar.pack()
+        self.toolbar.pack(side="left")
 
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
@@ -198,9 +199,9 @@ class StartPage(Frame):
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
 
         self.animator.shot_len = self.xml.stop_condition
-        self.board_options.animator_obj = self.animator
 
         self.board_options.fig = self.plot_fig
+        self.board_options.animator_obj = self.animator
 
 
 class MainContainer(Tk):
