@@ -1,5 +1,5 @@
 # Modules for GUI #
-from tkinter import Frame
+from tkinter import Frame, StringVar
 from tkinter.ttk import Button
 
 # Modules for extracting waveforms #
@@ -134,7 +134,15 @@ class ShotAnimator(TimedAnimation):
 
         self.board_names = dict()
 
+        # Instance variable for stopping the animation
+        self.pause = False
+        self.stop_btn = object()
+        self.display_state = StringVar()
+
         TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
+
+    def _stop(self, *args):
+        self.event_source.stop()
 
     def _post_draw(self, framedata, blit=False):
         self.fig.canvas.draw_idle()
@@ -150,7 +158,7 @@ class ShotAnimator(TimedAnimation):
             x_lim = [amin(x_data, axis=0), amax(x_data, axis=0)]
             self.axes_to_animate[board].set_xlim(xmin=x_lim[0], xmax=x_lim[1])
             self.axes_to_animate[board].set_ylim(ymin=y_lim[0], ymax=y_lim[1])
-            self.axes_to_animate[board].set_ylabel('Amplitude (a.u.)')
+            self.axes_to_animate[board].set_ylabel('Amplitude \n(a.u.)')
             self.axes_to_animate[board].autoscale(enable=True, axis='x')
             self.axes_to_animate[board].set_title('Sequence {0} Board'.format(self.board_names[board]))
             self.line_of_axes[board][0].set_data(x_data, y_data)
@@ -168,7 +176,6 @@ class ShotAnimator(TimedAnimation):
 
     def add_subplot(self, board, idx, name):
         self.axes_to_animate[board] = self.fig.add_subplot(8, 1, idx)
-        # self.axes_to_animate[board] = self.fig.add_subplot()
         self.line_of_axes[board] = self.axes_to_animate[board].plot([], [], 'b-', lw=1)
 
         self.board_names[board] = name
@@ -177,3 +184,21 @@ class ShotAnimator(TimedAnimation):
         self.fig.delaxes(self.axes_to_animate[board])
         self.axes_to_animate.pop(board)
         self.board_names.pop(board)
+
+    def stop_button(self, some_frame):
+        self.display_state.set("Stop")
+        self.stop_btn = Button(some_frame, textvariable=self.display_state,
+                               command=lambda: self.pause_play())
+        self.stop_btn.pack(side="right", anchor="e", expand=True)
+
+    def pause_play(self, event=None):
+        if not self.pause:
+            self.pause = True
+            self.display_state.set("Play")
+            self._stop()
+            self.stop_btn.config(textvariable=self.display_state)
+        else:
+            self.pause = False
+            self.display_state.set("Stop")
+            self._start()
+            self.stop_btn.config(textvariable=self.display_state)
