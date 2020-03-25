@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
 from matplotlib.figure import Figure, SubplotParams
 
 # Custom modules for plotting setting and extracting xml info
-from PlotAnimator import board_waveform, ShotAnimator
+from PlotAnimator import board_waveform, ShotAnimator, PrevNextIterator
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -145,14 +145,17 @@ class StartPage(Frame):
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
-        self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
+        self.control_frame.grid(row=3, column=0, columnspan=2
+                                , pady=5, sticky="ew")
 
         # Instance variables for the animation and navigation of plots
         self.toolbar = NavTb2(self.canvas, self.control_frame)
 
         self.canvas_setup()
         self.animator = ShotAnimator(self.plot_fig)
+        self.animator.step_up_button(self.control_frame)
         self.animator.stop_button(self.control_frame)
+        self.animator.step_dwn_button(self.control_frame)
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -199,6 +202,9 @@ class StartPage(Frame):
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
 
         self.animator.shot_len = self.xml.stop_condition
+        self.animator.frame_seq = self.animator.new_frame_seq()
+        self.animator.step_up_dwn = PrevNextIterator(
+            [x for x in self.animator.frame_seq])
 
         self.board_options.fig = self.plot_fig
         self.board_options.animator_obj = self.animator
