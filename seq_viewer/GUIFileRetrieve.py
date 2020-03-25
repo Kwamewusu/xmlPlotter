@@ -1,3 +1,7 @@
+# Author: Nana K. Owusu
+# This module coalesces the list of files in the user's chosen
+# directory and processes the files.
+
 # Module for storing integers
 # during run-time
 from tkinter import IntVar
@@ -9,7 +13,6 @@ from fnmatch import filter
 
 # Module for reading XML files
 from xml.etree.ElementTree import parse
-
 from backend_parser import xml_itemize, xml_sort
 
 

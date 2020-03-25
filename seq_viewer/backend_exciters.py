@@ -1,3 +1,16 @@
+# Author: Nana K. Owusu
+# This module contains functions that process the information
+# extracted from the ElementTree module. The ssp_end_time
+# function finds the repetition time (TR) at each shot using the
+# SSP board as a reference. The scale_time function takes the
+# TR at each shot and replaces the last time value of the input
+# waveform at each shot with that of the TR values. The wave_truncate
+# function outputs a shortened form of the input waveform. The reason
+# for this is that there are extra time values added at the end of each
+# waveform which have amplitudes of zero. To save all the info in a
+# uniform array, the extra values are removed and the lengths are made
+# to match.
+
 # Module for math #
 from numpy import zeros, delete
 

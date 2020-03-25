@@ -1,3 +1,8 @@
+# Author: Nana K. Owusu
+# This module contains classes and functions that inherit from
+# tkinter classes. The graphical user-interface window, buttons,
+# and labels are defined here.
+
 # Modules for GUI
 from os import getcwd
 from tkinter import Tk, Frame, Checkbutton, IntVar, StringVar, Entry
@@ -7,10 +12,10 @@ from tkinter.ttk import Button, LabelFrame
 # Modules for interactive plotting in GUI
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavTb2
-from matplotlib.figure import Figure
+from matplotlib.figure import Figure, SubplotParams
 
 # Custom modules for plotting setting and extracting xml info
-from PlotAnimator import board_waveform, ShotAnimator
+from PlotAnimator import board_waveform, ShotAnimator, PrevNextIterator
 from GUIFileRetrieve import GetXMLPath
 from backend_parser import xml_root
 
@@ -42,7 +47,6 @@ class CheckBar(Frame):
         self.boards_shown = 0
 
         self.fig = object()
-        self.canvas = object()
         self.animator_obj = object()
 
         self.xml_info = dict()
@@ -70,7 +74,8 @@ class CheckBar(Frame):
             self.boards_shown += 1
             shot_data = self.data_gen(id_num)
             self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
-            self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown)
+            self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown,
+                                          self.boards[id_num])
             self.play_choice()
 
         else:
@@ -87,6 +92,9 @@ class CheckBar(Frame):
 
     def play_choice(self):
         iterator = self.animator_obj.new_frame_seq()
+        self.animator_obj.pause = False
+        self.animator_obj.display_state.set("Stop")
+
         self.animator_obj._start()
         for t in iterator:
             self.animator_obj._draw_frame(t)
@@ -137,18 +145,24 @@ class StartPage(Frame):
         self.canvas_frame = Frame(self.window, relief="sunken")
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
 
-        # Instance variables for the figure, canvas and navigation of plots
-        self.plot_fig = Figure(figsize=[7.0, 6.5])
-        # self.plot_fig.subplots_adjust(hspace=1.5)
+        # Instance variables for the figure
+        params = SubplotParams(left=0.1, right=0.95, top=0.9, bottom=0.1)
+        self.plot_fig = Figure(figsize=[8.0, 6.0], subplotpars=params)
+        self.plot_fig.subplots_adjust(hspace=1.75)
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
-        self.toolbar = NavTb2(self.canvas, self.canvas_frame)
-
-        self.canvas_setup()
-        self.animator = ShotAnimator(self.plot_fig)
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
         self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
+
+        # Instance variables for the animation and navigation of plots
+        self.toolbar = NavTb2(self.canvas, self.control_frame)
+
+        self.canvas_setup()
+        self.animator = ShotAnimator(self.plot_fig)
+        self.animator.step_up_button(self.control_frame)
+        self.animator.stop_button(self.control_frame)
+        self.animator.step_dwn_button(self.control_frame)
 
     def user_choice(self):
         self.choice_display.delete(first=0, last="end")
@@ -167,7 +181,7 @@ class StartPage(Frame):
 
     def canvas_setup(self):
         self.toolbar.update()
-        self.toolbar.pack()
+        self.toolbar.pack(side="left")
 
         self.canvas.get_tk_widget().pack(side='top', fill='both')
         self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
@@ -195,10 +209,12 @@ class StartPage(Frame):
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
 
         self.animator.shot_len = self.xml.stop_condition
-        self.board_options.animator_obj = self.animator
+        self.animator.frame_seq = self.animator.new_frame_seq()
+        self.animator.step_up_dwn = PrevNextIterator(
+            [x for x in self.animator.frame_seq])
 
         self.board_options.fig = self.plot_fig
-        self.board_options.canvas = self.canvas
+        self.board_options.animator_obj = self.animator
 
 
 class MainContainer(Tk):
