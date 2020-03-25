@@ -1,3 +1,8 @@
+# Author: Nana K. Owusu
+# This module contains functions and classes that aid in plotting and
+# animating the axes, lines and waveform information that are populated
+# by tkinter events in the ViewerGUI module.
+
 # Modules for GUI #
 from tkinter import StringVar
 from tkinter.ttk import Button

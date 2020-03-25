@@ -1,3 +1,7 @@
+# Author: Nana K. Owusu
+# This module contains functions that process the user's desired
+# directory.
+
 # Modules for text interpretation and
 # storage of sequencer information#
 from re import search
