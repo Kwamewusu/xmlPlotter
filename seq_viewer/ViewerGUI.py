@@ -1,3 +1,8 @@
+# Author: Nana K. Owusu
+# This module contains classes and functions that inherit from
+# tkinter classes. The graphical user-interface window, buttons,
+# and labels are defined here.
+
 # Modules for GUI
 from os import getcwd
 from tkinter import Tk, Frame, Checkbutton, IntVar, StringVar, Entry
