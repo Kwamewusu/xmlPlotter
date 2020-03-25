@@ -87,6 +87,9 @@ class CheckBar(Frame):
 
     def play_choice(self):
         iterator = self.animator_obj.new_frame_seq()
+        self.animator_obj.pause = False
+        self.animator_obj.display_state.set("Stop")
+
         self.animator_obj._start()
         for t in iterator:
             self.animator_obj._draw_frame(t)
@@ -145,8 +148,7 @@ class StartPage(Frame):
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
-        self.control_frame.grid(row=3, column=0, columnspan=2
-                                , pady=5, sticky="ew")
+        self.control_frame.grid(row=3, column=0, pady=5, sticky="ew")
 
         # Instance variables for the animation and navigation of plots
         self.toolbar = NavTb2(self.canvas, self.control_frame)
