@@ -134,10 +134,16 @@ class ShotAnimator(TimedAnimation):
 
         self.board_names = dict()
 
-        # Instance variable for stopping the animation
+        # Instance variables for stopping the animation
         self.pause = False
         self.stop_btn = object()
+        self.step_up_dwn = object()
         self.display_state = StringVar()
+
+        # Instance variable for stepping the animation
+        # forward and backward
+        self.frame_seq = object()
+        self.current_frame = None
 
         TimedAnimation.__init__(self, self.fig, interval=1000, blit=False)
 
@@ -149,6 +155,7 @@ class ShotAnimator(TimedAnimation):
 
     def _draw_frame(self, framedata):
         shot = framedata
+        self.current_frame = framedata
         self._drawn_artists = []
         self.boards_picked = list(self.boards_to_animate.keys())
 
@@ -164,6 +171,15 @@ class ShotAnimator(TimedAnimation):
             self.line_of_axes[board][0].set_data(x_data, y_data)
 
         self._drawn_artists.append(self.line_of_axes.values())
+
+    def _draw_next_frame(self, framedata, blit):
+        self._draw_frame(framedata)
+        self._post_draw(framedata)
+
+    def draw_prev_frame(self, framedata):
+        self._drawn_artists.clear()
+        self._draw_frame(framedata)
+        self._post_draw(framedata)
 
     def new_frame_seq(self):
         return iter(range(self.shot_len))
@@ -189,7 +205,17 @@ class ShotAnimator(TimedAnimation):
         self.display_state.set("Stop")
         self.stop_btn = Button(some_frame, textvariable=self.display_state,
                                command=lambda: self.pause_play())
-        self.stop_btn.pack(side="right", anchor="e", expand=True)
+        self.stop_btn.pack(side="right", anchor="e")
+
+    def step_up_button(self, some_frame):
+        step_up_btn = Button(some_frame, text="Forward",
+                             command=lambda: self.forward())
+        step_up_btn.pack(side="right", anchor="e")
+
+    def step_dwn_button(self, some_frame):
+        step_dwn_btn = Button(some_frame, text="Backward",
+                              command=lambda: self.backward())
+        step_dwn_btn.pack(side="right", anchor="e")
 
     def pause_play(self, event=None):
         if not self.pause:
@@ -202,3 +228,39 @@ class ShotAnimator(TimedAnimation):
             self.display_state.set("Stop")
             self._start()
             self.stop_btn.config(textvariable=self.display_state)
+
+    def forward(self):
+        self.step_up_dwn.index = self.current_frame
+        next_frame = self.step_up_dwn.next()
+        self._draw_next_frame(next_frame, blit=False)
+
+    def backward(self):
+        self.step_up_dwn.index = self.current_frame
+        prev_frame = self.step_up_dwn.prev()
+        self.draw_prev_frame(prev_frame)
+
+
+class PrevNextIterator:
+    """ Copied from
+    https://stackoverflow.com/questions/2777188/making-a-python-iterator-go-backwards
+    """
+    def __init__(self, collection=None):
+        self.collection = None or collection
+        self.index = 0
+
+    def next(self):
+        try:
+            result = self.collection[self.index]
+            self.index += 1
+        except IndexError:
+            raise StopIteration
+        return result
+
+    def prev(self):
+        self.index -= 1
+        if self.index < 0:
+            raise StopIteration
+        return self.collection[self.index]
+
+    def __iter__(self):
+        return self
