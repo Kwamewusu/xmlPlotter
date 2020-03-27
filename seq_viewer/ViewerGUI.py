@@ -7,7 +7,7 @@
 from os import getcwd
 from tkinter import Tk, Frame, Checkbutton, IntVar, StringVar, Entry
 from tkinter import filedialog
-from tkinter.ttk import Button, LabelFrame
+from tkinter.ttk import Button, LabelFrame, Scrollbar
 
 # Modules for interactive plotting in GUI
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg as FigCanvas
@@ -144,12 +144,19 @@ class StartPage(Frame):
         # Instance variable for third row of widgets
         self.canvas_frame = Frame(self.window, relief="sunken")
         self.canvas_frame.grid(row=2, column=0, pady=5, sticky="ew")
+        # self.canvas_frame.grid_propagate(1)
 
         # Instance variables for the figure
         params = SubplotParams(left=0.1, right=0.95, top=0.9, bottom=0.1)
-        self.plot_fig = Figure(figsize=[8.0, 6.0], subplotpars=params)
-        self.plot_fig.subplots_adjust(hspace=1.75)
+        self.plot_fig = Figure(figsize=[8.0, 6.25], subplotpars=params,
+                               constrained_layout=True)
+        self.plot_fig.subplots_adjust(hspace=2.75)
+        widths = [1]
+        heights = [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+        self.plot_fig.add_gridspec(nrows=8, ncols=1, width_ratios=widths,
+                                   height_ratios=heights)
         self.canvas = FigCanvas(self.plot_fig, self.canvas_frame)
+        self.v_scroll = Scrollbar(self.canvas_frame, orient="vertical")
 
         # Instance variable for third row of widgets
         self.control_frame = Frame(self.window, relief="sunken")
@@ -180,11 +187,18 @@ class StartPage(Frame):
         self.board_options.grid_configure(row=2, column=0)
 
     def canvas_setup(self):
+        self.canvas.get_tk_widget().config(scrollregion=(0, 0, 1000, 1000),
+                                           yscrollcommand=self.v_scroll.set)
+        self.canvas.get_tk_widget().pack(side='left', fill='both', expand=True)
+
+        self.v_scroll.config(command=self.canvas.get_tk_widget().yview())
+        self.v_scroll.pack(side='right', fill='y')
+
         self.toolbar.update()
         self.toolbar.pack(side="left")
 
-        self.canvas.get_tk_widget().pack(side='top', fill='both')
-        self.canvas._tkcanvas.pack(side='top', fill='both', expand=1)
+        self.plot_fig.set_figwidth(8.0)
+        self.plot_fig.set_figheight(16.0)
 
     def choice_show(self):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
