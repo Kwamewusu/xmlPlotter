@@ -56,7 +56,7 @@ class GetXMLPath:
             files = filter(dir_list, '*')
             for x in files:
                 if parse(image_loc + x):
-                    self.files_in_dir.append(image_loc + x)
+                    self.files_in_dir.append(x)
                 else:
                     continue
         else:
@@ -79,14 +79,9 @@ class GetXMLPath:
         # Fill array with XML absolute paths.
         self.stop_condition = len(sorted_files)
 
-        if convention == 2:
-            for count, file in sorted_files:
-                # Array for the sorted abs. path for each XML file
-                self.xml_full_path.append(file)
-        else:
-            for count, file in sorted_files:
-                # Array for the sorted abs. path for each XML file
-                self.xml_full_path.append(root_dir + '/' + file)
+        for count, file in sorted_files:
+            # Array for the sorted abs. path for each XML file
+            self.xml_full_path.append(root_dir + '/' + file)
 
         # Garbage collection of unused variables
         self.temp_list.clear()
