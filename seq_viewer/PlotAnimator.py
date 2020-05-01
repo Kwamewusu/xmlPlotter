@@ -117,9 +117,10 @@ class ShotAnimator(TimedAnimation):
         self._post_draw(framedata)
 
     def new_frame_seq(self):
-        # Returns an iterator which determines how long the
-        # long sequencer data is and how long till the
-        # sequence repeats
+        """Returns an iterator which determines how long the
+        long sequencer data is and how long till the
+        sequence repeats
+        """
         return iter(range(self.shot_len))
 
     def add_shots(self, board, exciter_data):
@@ -143,17 +144,17 @@ class ShotAnimator(TimedAnimation):
         self.display_state.set("Stop")
         self.stop_btn = Button(some_frame, textvariable=self.display_state,
                                command=lambda: self.pause_play())
-        self.stop_btn.pack(side="right", anchor="e")
+        self.stop_btn.pack(side="right", anchor="sw", fill="x")
 
     def step_up_button(self, some_frame):
         step_up_btn = Button(some_frame, text="Forward",
                              command=lambda: self.forward())
-        step_up_btn.pack(side="right", anchor="e")
+        step_up_btn.pack(side="right", anchor="sw", fill="x")
 
     def step_dwn_button(self, some_frame):
         step_dwn_btn = Button(some_frame, text="Backward",
                               command=lambda: self.backward())
-        step_dwn_btn.pack(side="right", anchor="e")
+        step_dwn_btn.pack(side="right", anchor="sw", fill="x")
 
     def pause_play(self, event=None):
         if not self.pause:
