@@ -143,17 +143,20 @@ class ShotAnimator(TimedAnimation):
         self.display_state.set("Stop")
         self.stop_btn = Button(some_frame, textvariable=self.display_state,
                                command=lambda: self.pause_play())
-        self.stop_btn.pack(side="right", anchor="e")
+        self.stop_btn.pack(side="right", anchor="sw", fill="x")
+        # self.stop_btn.pack(side="bottom", anchor="sw", fill="x")
 
     def step_up_button(self, some_frame):
         step_up_btn = Button(some_frame, text="Forward",
                              command=lambda: self.forward())
-        step_up_btn.pack(side="right", anchor="e")
+        step_up_btn.pack(side="right", anchor="sw", fill="x")
+        # step_up_btn.pack(side="bottom", anchor="sw", fill="x")
 
     def step_dwn_button(self, some_frame):
         step_dwn_btn = Button(some_frame, text="Backward",
                               command=lambda: self.backward())
-        step_dwn_btn.pack(side="right", anchor="e")
+        step_dwn_btn.pack(side="right", anchor="sw", fill="x")
+        # step_dwn_btn.pack(side="bottom", anchor="sw", fill="x")
 
     def pause_play(self, event=None):
         if not self.pause:
