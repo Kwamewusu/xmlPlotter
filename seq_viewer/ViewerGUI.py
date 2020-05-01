@@ -135,14 +135,14 @@ https://stackoverflow.com/questions/3085696/adding-a-scrollbar-to-a-group-of-wid
         v_scroll = Scrollbar(self.frame)
         v_scroll.pack(side="right", anchor="ne", fill="y", expand=False)
         v_scroll.config(command=self.tk_cnv.yview, width=width)
-        v_scroll.activate(" ")
+        v_scroll.activate("slider")
 
         # Instance variable for the matplotlib canvas
         self.mpl_cnv = FigCanvas(fig, self.tk_cnv)
         self.mpl_cnv_widget = self.mpl_cnv.get_tk_widget()
 
-        self.mpl_cnv_widget.config(yscrollcommand=v_scroll.set)
-        self.mpl_cnv_widget.bind("<Configure>", self.__fill_canvas)
+        self.tk_cnv.config(yscrollcommand=v_scroll.set)
+        self.tk_cnv.bind("<Configure>", self.__fill_canvas)
 
         # self.cnv_widget.bind("<Enter>", self._bound_to_mousewheel)
         # self.cnv_widget.bind("<Leave>", self._unbound_to_mousewheel)
