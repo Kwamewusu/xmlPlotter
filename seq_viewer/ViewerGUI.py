@@ -54,7 +54,7 @@ class CheckBar(Frame):
 
         self.fig = object()
         self.cnv = object()
-        self.shot = object()
+        self.label_txt = object()
         self.shot_label = object()
         self.animator_obj = object()
 
@@ -107,8 +107,6 @@ class CheckBar(Frame):
         self.animator_obj._start()
         self.cnv()
         for t in iterator:
-            self.shot.set(t)
-            self.shot_label.update()
             self.animator_obj._draw_frame(t)
             self.animator_obj._post_draw(t)
 
@@ -117,7 +115,7 @@ class Scrollable(Frame):
     """
        This framework was copied from the url below and adapted
        for this project.
-https://stackoverflow.com/questions/3085696/adding-a-scrollbar-to-a-group-of-widgets-in-tkinter/3092341#3092341
+       https://tinyurl.com/ya8m9zuv
        Make a frame scrollable with scrollbar on the right.
        After adding or removing widgets to the scrollable frame,
        call the update() method to refresh the scrollable area.
@@ -252,10 +250,10 @@ class StartPage(Frame):
         self.control_frame = Frame(self.controller, relief="sunken")
         self.control_frame.pack(side="bottom", anchor="sw", fill="x")
 
-        # -Instance variables for the animation and navigation of plots
-        self.shot_num = IntVar(self.controller)
+        # -Instance variables for the displaying the current time-point
+        # in the animation
         self.shot_info = StringVar(self.controller)
-        self.shot_num.set(0)
+        self.shot_info.set("Shot #: ")
         self.show_shot_num = Label(self.control_frame, textvariable=self.shot_info)
 
         # -Instance variables for the animation and navigation of plots
@@ -269,10 +267,11 @@ class StartPage(Frame):
         self.show_shot_num.pack(side="right", anchor="sw", fill="x")
 
     @staticmethod
-    def get_repeat_list(repeat_list, num_of_times):
-        return [num for num in repeat_list for i in range(num_of_times)]
+    def get_repeat_list(list_2_repeat, num_of_times):
+        return [num for num in list_2_repeat for i in range(num_of_times)]
 
     def user_choice(self):
+        # Clear the Entry widget
         self.choice_display.delete(first=0, last="end")
 
         # Event handler for selecting desired directory
@@ -295,9 +294,12 @@ class StartPage(Frame):
         self.choice_display.insert(index=0, string=self.xml_dir.get())
 
     def file_name(self):
+        # Store full path to chosen directory and display it
         self.xml_dir.set(get_file(self.window))
         self.choice_show()
 
+        # Disable the ability to modify the input, extract information
+        # from the directory and pass it to the other class objects
         self.choice_display.config(state="disable")
         self.get_info()
         self.checkbox_frame.after(10, self.update_checkbox())
@@ -318,23 +320,21 @@ class StartPage(Frame):
         self.board_options.xml_info["waveforms"] = self.xml.waveforms
         self.board_options.xml_info["xml_count"] = self.xml.stop_condition
 
+        self.board_options.fig = self.plot_fig
+        self.board_options.label_txt = self.shot_info
+        self.board_options.shot_label = self.show_shot_num
+        self.board_options.animator_obj = self.animator
         self.board_options.cnv = self.canvas_body.update_canvas
 
         self.show_shot_num.config(textvariable=self.shot_info.
-                                  set("Shot #: {0}/{1}".format(self.shot_num.get(),
-                                                               self.xml.stop_condition)))
+                                  set("Shot #: {0}/{1}".format(0, self.xml.stop_condition)))
 
-        self.animator.shot = self.shot_num
+        self.animator.label_txt = self.shot_info
         self.animator.shot_len = self.xml.stop_condition
         self.animator.shot_label = self.show_shot_num
         self.animator.frame_seq = self.animator.new_frame_seq()
         self.animator.step_up_dwn = PrevNextIterator(
             [x for x in self.animator.frame_seq])
-
-        self.board_options.fig = self.plot_fig
-        self.board_options.shot = self.shot_num
-        self.board_options.shot_label = self.show_shot_num
-        self.board_options.animator_obj = self.animator
 
 
 class MainContainer(Tk):
