@@ -60,6 +60,8 @@ class ShotAnimator(TimedAnimation):
         self.shot_len = int()
         self.fig = fig
 
+        self.label_txt = object()
+        self.shot_label = object()
         self.board_names = dict()
 
         # Instance variables for stopping the animation
@@ -91,11 +93,22 @@ class ShotAnimator(TimedAnimation):
         self._drawn_artists = []
         self.boards_picked = list(self.boards_to_animate.keys())
 
+        # Update label showing the current shot number
+        self.shot_label.config(textvariable=self.label_txt.
+                               set("Shot #: {0}/{1}".format(framedata,
+                                                            self.shot_len-1)))
+
         for board in self.boards_picked:
             x_data, y_data = wave_to_plot(self.boards_to_animate[board], self.current_frame)
 
             y_lim = [amin(y_data, axis=0), amax(y_data, axis=0)]
             x_lim = [amin(x_data, axis=0), amax(x_data, axis=0)]
+
+            if y_lim[0] == y_lim[1]:
+                y_lim[1] = y_lim[0] + 1
+
+            if x_lim[0] == x_lim[1]:
+                x_lim[1] = x_lim[0] + 1
 
             self.axes_to_animate[board].set_xlim(xmin=x_lim[0], xmax=x_lim[1])
             self.axes_to_animate[board].set_ylim(ymin=y_lim[0], ymax=y_lim[1])
@@ -171,17 +184,25 @@ class ShotAnimator(TimedAnimation):
     def forward(self):
         self.step_up_dwn.index = self.current_frame
         next_frame = self.step_up_dwn.next()
+
+        self.shot_label.config(textvariable=self.label_txt.
+                               set("Shot #: {0}/{1}".format(next_frame,
+                                                            self.shot_len)))
         self._draw_next_frame(next_frame, blit=False)
 
     def backward(self):
         self.step_up_dwn.index = self.current_frame
         prev_frame = self.step_up_dwn.prev()
+
+        self.shot_label.config(textvariable=self.label_txt.
+                               set("Shot #: {0}/{1}".format(prev_frame,
+                                                            self.shot_len)))
         self.draw_prev_frame(prev_frame)
 
 
 class PrevNextIterator:
     """ Copied from
-    https://stackoverflow.com/questions/2777188/making-a-python-iterator-go-backwards
+    https://tinyurl.com/y9egntu7
     This class allows for the increment and decrement of
     a list or tuple of integers.
     """

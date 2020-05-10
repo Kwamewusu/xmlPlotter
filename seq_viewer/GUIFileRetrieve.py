@@ -37,12 +37,18 @@ class GetXMLPath:
         self.waveforms = []
 
     def get_xml_list(self, file):
+        """ Accepts the file location and checks which naming
+        convention is used for the XMLs. Stores naming convention
+        and passes file contents to xml_paths()
+
+        :param file: Full-path to the user's desired directory
+        """
         self.xml_list.append(file)
 
         # provide the absolute path of the current directory
-        image_loc = self.xml_list[0] + '/'
+        file_loc = self.xml_list[0] + '/'
         # list all files in the XML directory
-        dir_list = listdir(image_loc)
+        dir_list = listdir(file_loc)
 
         # store only XML files
         if len(filter(dir_list, '*.xml*')) > 1:
@@ -55,7 +61,7 @@ class GetXMLPath:
             self.wont.set(2)
             files = filter(dir_list, '*')
             for x in files:
-                if parse(image_loc + x):
+                if parse(file_loc + x):
                     self.files_in_dir.append(x)
                 else:
                     continue
@@ -65,6 +71,15 @@ class GetXMLPath:
         self.xml_paths(self.files_in_dir, self.wont.get(), file)
 
     def xml_paths(self, chosen_dir, convention, root_dir):
+        """ Called by get_xml_list(). Stores naming convention and sorted
+        list of full-paths to the XML files in instance variables
+
+        :param chosen_dir: List containing the XML files from the chosen
+        directory
+        :param convention: Integer identifying the naming convention for the
+        files in the given directory
+        :param root_dir: Full-path to the chosen directory
+        """
         if convention == 2:
             for j, k in enumerate(chosen_dir):
                 self.temp_list.append(xml_itemize(convention, k))
@@ -83,6 +98,6 @@ class GetXMLPath:
             # Array for the sorted abs. path for each XML file
             self.xml_full_path.append(root_dir + '/' + file)
 
-        # Garbage collection of unused variables
+        # Clear unused variables
         self.temp_list.clear()
         self.xml_files.clear()
