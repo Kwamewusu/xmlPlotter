@@ -97,6 +97,12 @@ class ShotAnimator(TimedAnimation):
             y_lim = [amin(y_data, axis=0), amax(y_data, axis=0)]
             x_lim = [amin(x_data, axis=0), amax(x_data, axis=0)]
 
+            if y_lim[0] == y_lim[1]:
+                y_lim[1] = y_lim[0] + 1
+
+            if x_lim[0] == x_lim[1]:
+                x_lim[1] = x_lim[0] + 1
+
             self.axes_to_animate[board].set_xlim(xmin=x_lim[0], xmax=x_lim[1])
             self.axes_to_animate[board].set_ylim(ymin=y_lim[0], ymax=y_lim[1])
             self.axes_to_animate[board].set_ylabel('Amplitude \n(a.u.)')
