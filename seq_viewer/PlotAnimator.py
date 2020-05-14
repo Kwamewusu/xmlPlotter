@@ -65,7 +65,7 @@ class ShotAnimator(TimedAnimation):
         self.board_names = dict()
 
         # Instance variables for stopping the animation
-        self.pause = False
+        self.pause = True
         self.stop_btn = object()
         self.display_state = StringVar()
 

@@ -85,7 +85,9 @@ class CheckBar(Frame):
             self.animator_obj.add_shots(self.check_btn[id_num], shot_data)
             self.animator_obj.add_subplot(self.check_btn[id_num], self.boards_shown,
                                           self.boards[id_num])
-            self.play_choice()
+            self.animator_obj.display_state.set("Play")
+            self.cnv()
+            # self.play_choice()
 
         else:
             board.set(0)
@@ -121,7 +123,7 @@ class Scrollable(Frame):
        call the update() method to refresh the scrollable area.
     """
 
-    def __init__(self, frame, fig, width=16):
+    def __init__(self, frame, fig):
 
         # Base class initialization
         Frame.__init__(self, frame)
@@ -136,8 +138,7 @@ class Scrollable(Frame):
         # Instance variable for the scroll-bar
         v_scroll = Scrollbar(self.frame)
         v_scroll.pack(side="right", anchor="ne", fill="y", expand=False)
-        v_scroll.config(command=self.tk_cnv.yview, width=width)
-        v_scroll.activate("slider")
+        v_scroll.config(command=self.tk_cnv.yview)
 
         # Instance variable for the matplotlib canvas
         self.mpl_cnv = FigCanvas(fig, self.frame)
