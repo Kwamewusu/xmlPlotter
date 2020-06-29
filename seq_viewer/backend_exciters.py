@@ -72,6 +72,9 @@ def scale_time(wave, ssp_ending, shot_count):
     # Length of the input waveform
     wave_len = len(wave[0][0][:])
 
+    # Length of ssp_ending list
+    ssp_end_len = len(ssp_ending)
+
     # Placeholder for index of time values >= the repetition time the
     # least number of significant figures.
     idx_to_cut = int()
@@ -88,9 +91,10 @@ def scale_time(wave, ssp_ending, shot_count):
         time_stamp = wave[t][0][-1]
         count: int = 0
 
-        # take the 2nd through 5th to last time point
+        # take the 2nd through nth to last time point
         # and iterate over them for comparison
-        for i, time in enumerate(iter_time.flat[-2:-6:-1]):
+        for i, time in enumerate(iter_time.flat[-2:-ssp_end_len:-1]):
+
             if (time < time_stamp) & ((time_stamp % time) > 1.0):
 
                 # replace the first time point most different
@@ -104,7 +108,7 @@ def scale_time(wave, ssp_ending, shot_count):
                 count = count + 1
 
             time_stamp = time
-
+    
         idx_to_cut = count
 
     modified_wave = wave.copy()
