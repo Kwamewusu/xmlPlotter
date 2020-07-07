@@ -113,7 +113,6 @@ class ShotAnimator(TimedAnimation):
             self.axes_to_animate[board].set_xlim(xmin=x_lim[0], xmax=x_lim[1])
             self.axes_to_animate[board].set_ylim(ymin=y_lim[0], ymax=y_lim[1])
             self.axes_to_animate[board].set_ylabel('Amplitude \n(a.u.)')
-            self.axes_to_animate[board].autoscale(enable=True, axis='x')
             self.axes_to_animate[board].set_title('Sequence {0} Board'.format(self.board_names[board]))
 
             self.line_of_axes[board][0].set_data(x_data, y_data)
